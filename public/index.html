@@ -523,6 +523,9 @@ body:has(#gamePane.stage) #tlBoard #tlHand .tlc + .tlc { margin-left: -8px; }
 .chat-list li.mine { color: var(--accent, #d6336c); }
 .chat-form { display: flex; gap: 6px; }
 .chat-form input { flex: 1; min-width: 0; padding: 6px 8px; border-radius: 10px; border: 2px solid var(--edge); font: inherit; }
+/* Chạm trên điện thoại: không zoom khi bấm nhanh, không trễ, bấm được cả vùng bài và avatar */
+button, [data-tlid], [data-react], [id^="tlOpp"] .tl-fb, [id^="phOpp"] .tl-fb, [id^="tlOpp"], [id^="phOpp"] { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+[data-tlid], [data-react], [id^="tlOpp"] .tl-fb, [id^="phOpp"] .tl-fb, [id^="tlOpp"], [id^="phOpp"] { cursor: pointer; }
 </style>
 <div class="wrap">
   <header class="hub-head">
