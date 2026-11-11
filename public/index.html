@@ -1,0 +1,3320 @@
+<title>Game Gia đình Forteen</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: cuốn sổ dán sticker. Viền đậm, bóng cứng, thẻ nghiêng nhẹ. Avatar ghép từ mặt + mũ + đồ cầm tay, mỗi mặt có biệt danh riêng. */
+:root {
+  --bg: #FFF0F6;
+  --dot: #FFD3E5;
+  --surface: #FFFFFF;
+  --soft: #FFE3EF;
+  --ink: #33184A;
+  --muted: #7B6490;
+  --edge: #33184A;
+  --shadow: #33184A;
+  --line: #EBC6DA;
+  --accent: #FF4F8B;
+  --on-accent: #FFFFFF;
+  --lead-bg: #FFF1B8;
+  --pos: #0B8F66;
+  --neg: #D6282B;
+  --c-nhat: #FFD43B;
+  --c-nhi: #63E6BE;
+  --c-ba: #74C0FC;
+  --c-bet: #FFA94D;
+  --c-chay: #FF8787;
+  --c-u: #E599F7;
+  --on-chip: #33184A;
+  --font-display: "Baloo 2", "Nunito", system-ui, sans-serif;
+  --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1E1030;
+    --dot: #2C1A45;
+    --surface: #2D1B45;
+    --soft: #3A2457;
+    --ink: #FFEFF7;
+    --muted: #BBA4CF;
+    --edge: #8D66B5;
+    --shadow: #0E0618;
+    --line: #4A3069;
+    --accent: #FF6FA3;
+    --on-accent: #2A0E1D;
+    --lead-bg: #4F3F12;
+    --pos: #5EE0B0;
+    --neg: #FF8A8A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1E1030;
+  --dot: #2C1A45;
+  --surface: #2D1B45;
+  --soft: #3A2457;
+  --ink: #FFEFF7;
+  --muted: #BBA4CF;
+  --edge: #8D66B5;
+  --shadow: #0E0618;
+  --line: #4A3069;
+  --accent: #FF6FA3;
+  --on-accent: #2A0E1D;
+  --lead-bg: #4F3F12;
+  --pos: #5EE0B0;
+  --neg: #FF8A8A;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--dot) 1.6px, transparent 1.7px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  padding-block: 20px 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+td, th, .total, .sum, .pv { font-variant-numeric: tabular-nums; }
+
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.mascot {
+  flex: none; width: 56px; height: 56px; display: grid; place-items: center; font-size: 32px;
+  background: var(--c-nhat); border: 2px solid var(--edge); border-radius: 18px; box-shadow: 3px 4px 0 var(--shadow);
+  transform: rotate(-8deg); animation: wiggle 3.2s ease-in-out infinite;
+}
+@keyframes wiggle { 0%, 80%, 100% { transform: rotate(-8deg); } 86% { transform: rotate(6deg); } 92% { transform: rotate(-12deg); } }
+@media (prefers-reduced-motion: reduce) { .mascot { animation: none; } }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: 34px; line-height: 1.05; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); font-size: 13px; margin: 2px 0 0; text-wrap: balance; }
+h2 {
+  font-family: var(--font-display); font-weight: 800; font-size: 20px; line-height: 1.2; margin: 0 0 12px;
+  text-decoration: underline wavy var(--accent) 2px; text-underline-offset: 6px;
+}
+
+.btn {
+  border: 2px solid var(--edge); background: var(--surface); border-radius: 999px;
+  padding: 8px 16px; font-weight: 800; min-height: 42px; box-shadow: 0 3px 0 var(--shadow);
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--shadow); }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.danger { color: var(--neg); }
+.btn.small { min-height: 34px; padding: 4px 12px; font-size: 13px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: 0 3px 0 var(--shadow); }
+
+.notice, .confirm {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  border: 2px dashed var(--edge); border-radius: 16px; padding: 10px 14px; font-size: 13px; background: var(--surface);
+}
+.confirm { border-style: solid; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* Avatar vẽ tay (SVG) */
+.avt { display: inline-block; flex: none; line-height: 0; }
+.avt.sm { width: 40px; height: 40px; }
+.avt.lg { width: 66px; height: 66px; }
+.avt.xl { width: 128px; height: 128px; }
+.avsvg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+/* Tổng tiền */
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px 12px; }
+.card {
+  background: var(--surface); border: 2px solid var(--edge); border-radius: 18px; box-shadow: 3px 4px 0 var(--shadow);
+  padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0;
+}
+.card:nth-child(odd) { transform: rotate(-0.7deg); }
+.card:nth-child(even) { transform: rotate(0.7deg); }
+.card.lead { background: var(--lead-bg); }
+.card .top { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 26px; }
+.rank { font-size: 12px; color: var(--muted); font-weight: 700; }
+.pill { background: var(--c-nhat); color: var(--on-chip); border: 2px solid var(--edge); font-size: 11px; font-weight: 800; border-radius: 99px; padding: 0 8px; white-space: nowrap; }
+.pill.last { background: var(--c-bet); }
+.rm { border: 0; background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; padding: 4px 6px; border-radius: 6px; }
+.rm:hover { color: var(--neg); }
+.rm.armed { color: var(--neg); font-weight: 800; }
+.who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.av-btn {
+  position: relative; flex: none; width: 58px; height: 58px; border-radius: 50%; padding: 0;
+  border: 2px solid var(--edge); background: var(--soft); display: grid; place-items: center;
+}
+.av-btn:hover, .av-btn.open { background: var(--c-nhat); }
+.mood { position: absolute; top: -8px; right: -8px; font-size: 18px; line-height: 1; }
+.who-text { min-width: 0; flex: 1; }
+.name {
+  width: 100%; border: 0; border-bottom: 2px dashed var(--line); background: transparent;
+  padding: 2px 0; font-weight: 800; font-size: 16px; border-radius: 0; min-width: 0;
+}
+.name:focus { outline: none; border-bottom-color: var(--accent); }
+.nick { font-size: 11px; color: var(--muted); line-height: 1.25; margin-top: 2px; }
+.total { font-family: var(--font-display); font-size: 42px; line-height: 1.05; font-weight: 800; }
+.total.neg { color: var(--neg); }
+.unit { font-size: 16px; font-weight: 800; color: var(--muted); margin-left: 2px; }
+
+.tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); min-height: 34px; }
+.check input { width: 20px; height: 20px; accent-color: var(--accent); }
+
+/* Bảng chọn avatar */
+.who { flex-direction: column; align-items: stretch; gap: 6px; }
+.who-text { width: 100%; flex: none; }
+.av-btn { align-self: center; width: 76px; height: 76px; border-radius: 20px; }
+.picker { margin-top: 16px; background: var(--surface); border: 2px solid var(--edge); border-radius: 18px; box-shadow: 3px 4px 0 var(--shadow); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.pk-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.pk-who { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.pk-name { font-weight: 800; font-size: 16px; line-height: 1.2; }
+.pk-nick { font-size: 12px; color: var(--muted); }
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
+.tab { flex: none; border: 2px solid var(--line); background: var(--soft); border-radius: 99px; padding: 4px 12px; min-height: 34px; font-weight: 800; font-size: 13px; white-space: nowrap; }
+.tab.on { background: var(--accent); color: var(--on-accent); border-color: var(--edge); }
+.opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.opt { min-height: 38px; padding: 4px 13px; border: 2px solid var(--line); border-radius: 99px; background: var(--soft); font-weight: 800; }
+.opt:hover { border-color: var(--edge); }
+.opt.on { background: var(--c-nhat); color: var(--on-chip); border-color: var(--edge); box-shadow: 0 2px 0 var(--shadow); }
+.swatches { display: flex; flex-wrap: wrap; gap: 12px; padding: 4px; }
+.sw { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--edge); padding: 0; }
+.sw.on { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--accent); }
+
+/* Ghi ván */
+.seg { display: inline-flex; border: 2px solid var(--edge); border-radius: 999px; overflow: hidden; margin-bottom: 14px; background: var(--surface); box-shadow: 0 3px 0 var(--shadow); }
+.seg button { border: 0; background: transparent; padding: 8px 14px; min-height: 40px; font-weight: 800; }
+.seg button.on { background: var(--accent); color: var(--on-accent); }
+.entry { background: var(--surface); border: 2px solid var(--edge); border-radius: 20px; box-shadow: 3px 4px 0 var(--shadow); padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.pane { display: flex; flex-direction: column; gap: 16px; }
+.stack { display: flex; flex-direction: column; }
+.prow { display: flex; flex-direction: column; gap: 8px; padding-block: 10px; border-bottom: 2px dashed var(--line); }
+.prow:first-child { padding-top: 0; }
+.prow:last-child { border-bottom: 0; }
+.pname { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; padding-top: 6px; min-width: 0; }
+.pname span[data-label] { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { min-height: 38px; padding: 4px 13px; border: 2px solid var(--line); border-radius: 99px; background: var(--soft); font-weight: 800; }
+.chip:hover:not(:disabled) { border-color: var(--edge); }
+.chip.on { color: var(--on-chip); border-color: var(--edge); box-shadow: 0 2px 0 var(--shadow); }
+.chip.st-nhat.on { background: var(--c-nhat); }
+.chip.st-nhi.on { background: var(--c-nhi); }
+.chip.st-ba.on { background: var(--c-ba); }
+.chip.st-bet.on { background: var(--c-bet); }
+.chip.st-chay.on { background: var(--c-chay); }
+.chip.st-u.on { background: var(--c-u); }
+.chip:disabled { opacity: 0.35; cursor: not-allowed; }
+.block-title { font-family: var(--font-display); font-weight: 800; font-size: 15px; margin: 0 0 8px; }
+.hint-text { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+.chots { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.chot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%; font-size: 13px; color: var(--muted); }
+select, .rate input, .field {
+  border: 2px solid var(--edge); background: var(--bg); border-radius: 12px;
+}
+select { padding: 8px 10px; color: var(--ink); font-weight: 700; }
+.chot select, .uden select { flex: 1 1 110px; min-width: 0; }
+.uden { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; padding: 10px 12px; background: var(--soft); border-radius: 14px; border: 2px dashed var(--edge); }
+details.rates { border-top: 2px dashed var(--line); padding-top: 14px; }
+details.rates summary { cursor: pointer; font-family: var(--font-display); font-weight: 800; font-size: 15px; }
+.rategrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 12px; }
+.rate { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rate label { font-size: 12px; color: var(--muted); }
+.rate input { padding: 8px 10px; width: 100%; text-align: right; font-weight: 800; }
+.preview { display: flex; flex-wrap: wrap; gap: 6px; min-height: 30px; }
+.pv { font-size: 13px; font-weight: 800; background: var(--soft); border: 2px solid var(--line); border-radius: 99px; padding: 1px 12px; }
+.pv b.pos { color: var(--pos); }
+.pv b.neg { color: var(--neg); }
+
+.seg-label { font-family: var(--font-display); font-weight: 800; font-size: 14px; margin: 0 0 6px; }
+[hidden] { display: none !important; }
+.seg { flex-wrap: wrap; max-width: 100%; }
+.seg button { padding: 8px 10px; font-size: 14px; }
+.tl-panel { display: flex; flex-direction: column; gap: 14px; }
+.tl-setup { background: var(--surface); border: 2px solid var(--edge); border-radius: 18px; box-shadow: 3px 4px 0 var(--shadow); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.tl-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tl-row select { flex: 1 1 140px; min-width: 0; }
+.tl-note { font-size: 13px; color: var(--muted); margin: 0; }
+.tl-seats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 520px) { .tl-seats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.tl-seat { background: var(--surface); border: 2px solid var(--edge); border-radius: 16px; box-shadow: 3px 4px 0 var(--shadow); padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; min-width: 0; }
+.tl-seat.turn { background: var(--lead-bg); }
+.tl-seat.out { opacity: 0.6; }
+.tl-seat .sn { font-weight: 800; font-size: 14px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-seat .sc { font-size: 12px; color: var(--muted); }
+.tl-seat .sb { margin-top: 4px; font-size: 11px; font-weight: 800; background: var(--c-nhat); color: var(--on-chip); border: 2px solid var(--edge); border-radius: 99px; padding: 0 8px; }
+.tl-table { background: var(--soft); border: 2px dashed var(--edge); border-radius: 20px; min-height: 140px; padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
+.tl-label { font-weight: 800; font-size: 14px; min-height: 20px; }
+.tl-trick, .tl-hand { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.tl-hand { min-height: 100px; padding-top: 14px; }
+.tlc { width: 54px; height: 78px; border-radius: 10px; background: var(--surface); border: 2px solid var(--edge); box-shadow: 0 3px 0 var(--shadow); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; padding: 0; font: inherit; color: var(--ink); cursor: pointer; flex: none; }
+.tlc b { font-size: 20px; line-height: 1; font-weight: 800; }
+.tlc i { font-style: normal; font-size: 20px; line-height: 1.1; }
+.tlc.red { color: var(--neg); }
+.tlc:disabled { cursor: default; }
+.tl-hand .tlc:not(:disabled):hover { transform: translateY(-2px); }
+.tl-hand .tlc.on { transform: translateY(-12px); background: var(--c-nhat); box-shadow: 0 0 0 3px var(--accent), 0 3px 0 var(--shadow); }
+.tl-actions { justify-content: center; }
+.tl-result { background: var(--surface); border: 2px solid var(--edge); border-radius: 18px; box-shadow: 3px 4px 0 var(--shadow); padding: 14px; }
+.tl-result h2 { margin: 0 0 8px; font-size: 18px; text-decoration: none; }
+.ready-box { margin-top: 10px; padding-top: 10px; border-top: 2px dashed var(--edge); }
+.tl-result p { margin: 6px 0 2px; }
+.tl-result ul { margin: 4px 0 6px; padding-left: 20px; font-size: 14px; }
+.tl-pos { color: var(--pos); }
+.tl-neg { color: var(--neg); }
+.tl-cfgs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tl-cfg { display: flex; gap: 8px; align-items: center; background: var(--soft); border: 2px solid var(--edge); border-radius: 14px; padding: 8px; min-width: 0; }
+.tl-cfg-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.tl-name { width: 100%; border: 0; border-bottom: 2px dashed var(--line); background: transparent; font-weight: 800; padding: 2px 0; min-width: 0; }
+.tl-cfg-row { display: flex; gap: 6px; align-items: center; }
+.tl-cfg-row select { flex: 1; min-width: 0; font-size: 13px; }
+.tl-cfg-row .btn { min-height: 34px; padding: 4px 10px; }
+.tl-fb { display: inline-block; flex: none; line-height: 0; }
+.tl-fb svg { width: 62px; height: auto; display: block; }
+.tl-cfg .tl-fb svg { width: 50px; }
+.tl-felt { position: relative; height: 520px; border-radius: 56px / 64px; background: radial-gradient(ellipse at 50% 40%, #2E8B5F 0%, #1E6B4C 60%, #15503A 100%); border: 6px solid #C9A227; box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25), 0 6px 0 var(--shadow); overflow: hidden; }
+.tl-opp { position: absolute; display: flex; align-items: center; gap: 4px; }
+.tl-top { top: 10px; left: 50%; transform: translateX(-50%); }
+.tl-left { top: 110px; left: 14px; }
+.tl-right { top: 110px; right: 14px; flex-direction: row-reverse; }
+.tl-who { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.tl-who.turn .tl-fb { filter: drop-shadow(0 0 4px #FFD43B) drop-shadow(0 0 8px #FFD43B); }
+.tl-nm { font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); max-width: 76px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-who .sb { font-size: 10px; font-weight: 800; background: var(--c-nhat); color: var(--on-chip); border: 2px solid var(--edge); border-radius: 99px; padding: 0 6px; }
+.tl-stack { position: relative; width: 34px; height: 46px; flex: none; }
+.tl-stack i { position: absolute; width: 30px; height: 44px; border-radius: 5px; border: 2px solid #fff; background: repeating-linear-gradient(45deg, #B3261E 0 4px, #8A1A15 4px 8px); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
+.tl-stack i:nth-child(1) { left: 0; top: 2px; }
+.tl-stack i:nth-child(2) { left: 2px; top: 0; }
+.tl-stack i:nth-child(3) { left: 4px; top: -2px; }
+.tl-stack b { position: absolute; right: -10px; bottom: -6px; background: #fff; color: #1D1D1D; border: 2px solid var(--edge); border-radius: 99px; font-size: 13px; font-weight: 800; min-width: 28px; text-align: center; padding: 0 4px; line-height: 20px; }
+.tl-out { font-size: 12px; font-weight: 800; color: #fff; background: var(--neg); border-radius: 99px; padding: 2px 8px; }
+.tl-center { position: absolute; top: 236px; left: 50%; transform: translateX(-50%); width: 70%; min-width: 200px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.tl-label { font-size: 13px; font-weight: 800; color: #E6FFF0; min-height: 18px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+.tl-trick { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.tl-bottom { position: absolute; left: 22px; right: 16px; bottom: 12px; display: flex; align-items: flex-end; gap: 6px; }
+.tl-me { position: relative; flex: none; display: flex; flex-direction: column; align-items: center; }
+.tl-me .tl-fb svg { width: 56px; }
+.tl-count { position: absolute; top: -4px; right: -8px; background: #fff; color: #1D1D1D; border: 2px solid var(--edge); border-radius: 99px; font-size: 13px; font-weight: 800; min-width: 28px; text-align: center; line-height: 20px; padding: 0 4px; }
+.tl-hand { flex: 1; min-width: 0; display: flex; flex-wrap: nowrap; justify-content: center; align-items: flex-end; height: 84px; padding-top: 14px; }
+.tl-hand .tlc { width: 26px; height: 40px; flex: none; align-items: flex-start; justify-content: flex-start; padding: 2px 3px; border-radius: 6px; }
+.tl-hand .tlc b { font-size: 11px; }
+.tl-hand .tlc i { font-size: 11px; }
+.tl-hand .tlc + .tlc { margin-left: -17px; }
+.tl-hand .tlc.on { transform: translateY(-14px); }
+.tl-hand .tlc:not(:disabled):hover { transform: none; }
+.tl-hand .tlc.on:not(:disabled):hover { transform: translateY(-14px); }
+.tl-clock { margin: 0; font-size: 14px; font-weight: 800; color: #fff; background: #C0392B; border: 2px solid var(--edge); border-radius: 99px; padding: 2px 12px; align-self: center; }
+.tl-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.step { display: inline-flex; align-items: center; border: 2px solid var(--edge); border-radius: 12px; background: var(--bg); overflow: hidden; }
+.step button { border: 0; background: var(--soft); width: 42px; height: 42px; font-size: 20px; font-weight: 800; }
+.step button:active { background: var(--c-nhat); }
+.step input { border: 0; background: transparent; width: 56px; text-align: center; font-size: 18px; font-weight: 800; padding: 0; min-width: 0; }
+.step input:focus { outline: none; }
+.step-unit { font-size: 13px; color: var(--muted); }
+.win-note { font-size: 13px; color: var(--muted); }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cell label { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.field { display: flex; overflow: hidden; }
+.field:focus-within { border-color: var(--accent); }
+.field .sign { border: 0; border-right: 2px solid var(--edge); background: var(--soft); width: 46px; font-size: 18px; font-weight: 800; }
+.field input { border: 0; background: transparent; min-width: 0; width: 100%; padding: 10px; font-size: 18px; font-weight: 800; text-align: right; }
+.field input:focus { outline: none; }
+.actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.sum { font-size: 13px; color: var(--muted); flex: 1 1 140px; }
+.sum b { color: var(--ink); }
+
+/* Sổ cái */
+.scroller { overflow-x: auto; border: 2px solid var(--edge); border-radius: 18px; background: var(--surface); box-shadow: 3px 4px 0 var(--shadow); }
+table { border-collapse: collapse; width: 100%; min-width: 360px; }
+th, td { padding: 9px 12px; text-align: right; border-bottom: 2px dashed var(--line); white-space: nowrap; font-weight: 800; }
+thead th { background: var(--soft); font-size: 12px; color: var(--muted); border-bottom: 2px solid var(--edge); }
+th:first-child, td:first-child { text-align: left; color: var(--muted); font-size: 13px; }
+.note { display: block; font-size: 11px; line-height: 1.2; font-weight: 700; }
+tbody tr:last-child td { border-bottom: 0; }
+td.pos { color: var(--pos); }
+td.neg { color: var(--neg); }
+td.del { width: 1%; padding-left: 4px; }
+.empty { padding: 20px 16px; color: var(--muted); font-size: 14px; background: var(--surface); border: 2px dashed var(--edge); border-radius: 18px; text-align: center; }
+
+.toast {
+  position: fixed; z-index: 20; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px)); margin: 0 auto; max-width: 420px; text-align: center;
+  background: var(--c-nhat); color: var(--on-chip); border: 2px solid var(--edge); border-radius: 18px; box-shadow: 3px 4px 0 var(--shadow);
+  padding: 10px 14px; font-weight: 800; font-size: 14px;
+}
+</style>
+
+<style>
+.ph-center { position: absolute; top: 226px; left: 50%; transform: translateX(-50%); width: 70%; min-width: 200px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+.ph-actions { flex-wrap: wrap; justify-content: center; gap: 8px; }
+.ph-actions .btn { flex: 1 1 28%; min-width: 0; padding: 8px 6px; font-size: 13px; }
+#gamePane.stage .tl-setup, #gamePane.stage .tl-result, #gamePane.stage details, #gamePane.stage > h2 { display: none !important; }
+#gamePane.stage #gameBack { display: none; }
+#gamePane:not(.stage) #tlLeave { display: none; }
+.rotate-note { display: none !important; }
+#tlBoard .tl-hand, #phBoard .tl-hand { flex: 1; min-width: 0; height: auto; flex-wrap: wrap; justify-content: center; align-content: flex-end; row-gap: 6px; padding-top: 10px; }
+#tlBoard .tl-hand .tlc, #phBoard .tl-hand .tlc { width: 30px; height: 46px; padding: 3px 3px; flex: none; }
+#tlBoard .tl-hand .tlc b, #phBoard .tl-hand .tlc b { font-size: 14px; }
+#tlBoard .tl-hand .tlc i, #phBoard .tl-hand .tlc i { font-size: 13px; }
+#tlBoard .tl-hand .tlc + .tlc, #phBoard .tl-hand .tlc + .tlc { margin-left: -2px; }
+#tlBoard .tl-bottom, #phBoard .tl-bottom { align-items: flex-end; }
+#phBoard .ph-mine { min-width: 0; }
+#tlBoard .tl-hand, #phBoard .tl-hand { gap: 8px 0; padding-top: 14px; padding-left: 4px; }
+#tlBoard .tl-hand .tlc, #phBoard .tl-hand .tlc, #tlBoard .tl-trick .tlc, #phBoard .ph-pile .tlc { box-sizing: border-box; width: 40px; height: 58px; padding: 4px 4px; }
+#tlBoard .tl-hand .tlc b, #phBoard .tl-hand .tlc b { font-size: 15px; }
+#tlBoard .tl-hand .tlc i, #phBoard .tl-hand .tlc i { font-size: 14px; }
+#tlBoard .tl-hand .tlc + .tlc, #phBoard .tl-hand .tlc + .tlc { margin-left: -6px; }
+#tlBoard .tl-trick .tlc + .tlc, #phBoard .ph-pile .tlc + .tlc { margin-left: 0; }
+#tlBoard .tl-trick .tlc, #phBoard .ph-pile .tlc { margin-left: -8px; }
+#tlBoard .tl-trick .tlc:first-child, #phBoard .ph-pile .tlc:first-child { margin-left: 0; }
+#tlBoard .tl-bottom, #phBoard .tl-bottom { left: 6px; right: 6px; bottom: 6px; }
+#tlBoard .tl-me .tl-fb svg, #phBoard .tl-me .tl-fb svg { width: 52px; }
+.ph-pile { display: flex; gap: 16px; align-items: center; justify-content: center; }
+.ph-mine { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.ph-melds, .ph-melds-opp { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+.ph-meld { background: rgba(0, 0, 0, 0.3); color: #fff; border-radius: 8px; padding: 2px 6px; font-size: 12px; font-weight: 800; }
+.ph-melds-opp .ph-meld { font-size: 10px; }
+.ph-meld.send { outline: 2px dashed #ffd54a; outline-offset: 1px; cursor: pointer; }
+.ph-actions .btn { min-width: 0; }
+.tlgm-seg { }
+#gamePane.phom-mode .tlgm-seg { display: none; }
+.hub-head { display: flex; align-items: center; justify-content: space-between; }
+.hub-tabs { display: flex; gap: 10px; }
+.hub-tabs button { flex: 1; font: inherit; font-weight: 800; font-size: 15px; padding: 12px 8px; border: 2px solid var(--edge); border-radius: 14px; background: var(--surface); color: var(--fg, #1D1D1D); box-shadow: 3px 4px 0 var(--shadow); cursor: pointer; }
+.hub-tabs button.on { background: var(--accent); color: #fff; }
+.game-list { display: grid; gap: 14px; }
+.game-card { display: flex; align-items: center; gap: 14px; text-align: left; font: inherit; color: inherit; background: var(--surface); border: 2px solid var(--edge); border-radius: 18px; padding: 16px; box-shadow: 4px 5px 0 var(--shadow); cursor: pointer; }
+.game-card b { display: block; font-size: 17px; }
+.game-card small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.game-card .gc-ico { font-size: 34px; line-height: 1; flex: none; }
+.game-card.soon { opacity: 0.55; cursor: default; }
+.tl-topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tl-round { font-weight: 800; font-size: 14px; }
+.rotate-note { display: none; margin: 0; }
+.tl-trick .tlc { animation: tlPlayIn .34s cubic-bezier(.2, 1.35, .4, 1) both; animation-delay: calc(var(--i, 0) * 70ms); transform: rotate(var(--r, 0deg)); }
+.tl-trick .tlc + .tlc { margin-left: -26px; }
+@keyframes tlPlayIn { from { opacity: 0; transform: translate(var(--fx, 0px), var(--fy, -110px)) rotate(var(--r, 0deg)) scale(.7); } to { opacity: 1; transform: translate(0, 0) rotate(var(--r, 0deg)); } }
+#gamePane.stage .tl-setup, #gamePane.stage .tl-result, #gamePane.stage details, #gamePane.stage > h2 { display: none !important; }
+#gamePane.stage #gameBack { display: none; }
+#gamePane:not(.stage) #tlLeave { display: none; }
+/* Bố cục bàn kiểu mới (dọc): bàn bầu dục, bảng tên quanh bàn, nút hai bên giữa bàn */
+#tlBoard .tl-felt { height: 470px; border-radius: 130px / 100px; background: radial-gradient(ellipse at 50% 45%, #2E8B5F 0%, #1E6B4C 62%, #15503A 100%); border: 8px solid #6E7277; box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.12), inset 0 0 40px rgba(0, 0, 0, 0.35), 0 6px 0 var(--shadow); }
+#phBoard .tl-who, #tlBoard .tl-who { background: rgba(8, 28, 18, 0.62); border: 2px solid rgba(255, 255, 255, 0.22); border-radius: 14px; padding: 3px 8px 4px; }
+#tlBoard #tlOppTop { top: 12px; }
+#tlBoard .tl-who .tl-fb svg { width: 44px; }
+#tlBoard .tl-who { gap: 0; }
+#tlBoard .tl-nm { font-size: 11px; max-width: 90px; }
+#tlBoard #tlOppLeft { top: 96px; left: 22px; }
+#tlBoard #tlOppRight { top: 96px; right: 22px; }
+#tlBoard .tl-center { top: 200px; width: 96%; min-width: 0; gap: 4px; }
+#tlBoard .tl-table-row { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+#tlBoard .tl-trick { min-width: 96px; min-height: 66px; justify-content: center; }
+#tlBoard .tl-side { flex: none; min-width: 0; padding: 10px 8px; font-size: 13px; border-radius: 12px; }
+#tlBoard #tlPass { background: #B3261E; color: #fff; }
+#tlBoard #tlPlay { background: #FFC400; color: #1D1D1D; }
+#tlBoard .tl-bottom { left: 16px; right: 26px; bottom: 26px; flex-direction: row; align-items: flex-end; gap: 6px; }
+#tlBoard #tlMe { flex: none; width: 64px; display: flex; flex-direction: column; align-items: center; }
+#tlBoard #tlMe .tl-fb svg { width: 36px; }
+#tlBoard #tlMe .tl-nm { font-size: 10px; max-width: 62px; }
+#tlBoard #tlMe .tl-count { top: -6px; right: -6px; }
+#tlBoard #tlHand { flex: 1; min-width: 0; height: auto; width: auto; flex-wrap: nowrap; justify-content: flex-start; align-items: flex-end; gap: 0; padding: 14px 0 0 4px; }
+#tlBoard #tlHand .tlc { width: 44px; height: 76px; flex: none; padding: 3px 4px; margin-left: 0; }
+#tlBoard #tlHand .tlc + .tlc { margin-left: -27px; }
+#tlBoard #tlHand { isolation: isolate; }
+#tlBoard #tlHand .tlc { position: relative; }
+#tlBoard #tlHand .tlc.on { transform: translateY(-22px); }
+#tlBoard #tlHand .tlc b { font-size: 16px; }
+#tlBoard #tlHand .tlc i { font-size: 14px; }
+/* Đếm ngược chia ván mới: hiển thị giữa bàn */
+#tlBoard .ready-mid, #phBoard .ready-mid { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 84%; z-index: 30; background: rgba(8, 28, 18, 0.92); border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 16px; padding: 10px 12px; color: #fff; text-align: center; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35); }
+#tlBoard .ready-mid ul, #phBoard .ready-mid ul { list-style: none; padding: 0; margin: 4px 0; font-size: 13px; }
+#tlBoard .ready-mid .tl-actions, #phBoard .ready-mid .tl-actions { justify-content: center; }
+#tlBoard .ready-mid p, #phBoard .ready-mid p { margin: 0 0 4px; }
+/* Khi đang chơi: bàn chiếm toàn bộ màn hình (ẩn tiêu đề và thanh chuyển mục) */
+body:has(#gamePane.stage) > header.hub-head,
+body:has(#gamePane.stage) > nav.hub-tabs,
+body:has(#gamePane.stage) > #hubScore,
+body:has(#gamePane.stage) #gameList { display: none !important; }
+body:has(#gamePane.stage) #gamePane {
+  position: fixed; inset: 0; z-index: 40; margin: 0; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 8px; overflow: hidden;
+  background: var(--bg);
+  padding: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+}
+body:has(#gamePane.stage) #hubPlay { display: block; }
+body:has(#gamePane.stage) #tlBoard:not([hidden]), body:has(#gamePane.stage) #phBoard:not([hidden]) {
+  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px;
+}
+body:has(#gamePane.stage) #tlBoard .tl-felt, body:has(#gamePane.stage) #phBoard .tl-felt {
+  flex: 1; min-height: 0; height: auto;
+}
+body:has(#gamePane.stage) #tlBoard .tl-actions, body:has(#gamePane.stage) #phBoard .tl-actions { flex: none; }
+body:has(#gamePane.stage) #tlBoard .tl-center { top: 50%; transform: translate(-50%, -50%); }
+/* Bố cục ngang của bàn (luôn dùng khi đang chơi, cả khi điện thoại dọc đã được xoay bằng CSS) */
+@media all {
+  body:has(#gamePane.stage) #tlBoard .tl-felt { border-radius: 90px / 70px; }
+  body:has(#gamePane.stage) #tlBoard .tl-who { padding: 2px 6px 3px; }
+  body:has(#gamePane.stage) #tlBoard .tl-who .tl-fb svg { width: 32px; }
+  body:has(#gamePane.stage) #tlBoard .tl-nm { font-size: 10px; max-width: 70px; }
+  body:has(#gamePane.stage) #tlBoard #tlOppTop { top: 4px; }
+  body:has(#gamePane.stage) #tlBoard #tlOppLeft { top: 70px; left: 10px; }
+  body:has(#gamePane.stage) #tlBoard #tlOppRight { top: 70px; right: 10px; }
+  body:has(#gamePane.stage) #tlBoard .tl-center { top: 78px; transform: translateX(-50%); gap: 2px; }
+  body:has(#gamePane.stage) #tlBoard .tl-trick { min-height: 50px; }
+  body:has(#gamePane.stage) #tlBoard .tl-side { padding: 7px 10px; font-size: 12px; }
+  body:has(#gamePane.stage) #tlBoard .tl-bottom { left: 12px; right: 12px; bottom: 4px; align-items: flex-end; }
+  body:has(#gamePane.stage) #tlBoard #tlMe .tl-fb svg { width: 30px; }
+  body:has(#gamePane.stage) #tlBoard #tlMe .tl-count { top: -4px; }
+  body:has(#gamePane.stage) #tlBoard #tlHand { padding-top: 4px; }
+  body:has(#gamePane.stage) #tlBoard #tlHand .tlc { width: 50px; height: 70px; padding: 3px 4px; }
+  body:has(#gamePane.stage) #tlBoard #tlHand .tlc b { font-size: 16px; }
+  body:has(#gamePane.stage) #tlBoard #tlHand .tlc i { font-size: 14px; }
+  body:has(#gamePane.stage) #tlBoard #tlHand .tlc + .tlc { margin-left: -14px; }
+  body:has(#gamePane.stage) #tlBoard .tl-clock { font-size: 12px; margin: 0; }
+  body:has(#gamePane.stage) #tlBoard ~ .status, body:has(#gamePane.stage) #tlStatus { display: none; }
+  body:has(#gamePane.stage) #tlBoard .tl-actions .btn { padding: 6px 12px; font-size: 13px; }
+}
+/* Điện thoại đang dọc: xoay khung bàn chơi 90° để bàn nằm ngang, toàn màn hình, không cần xoay máy */
+@media (orientation: portrait) {
+  body:has(#gamePane.stage) { overflow: hidden; }
+  body:has(#gamePane.stage) #gamePane {
+    inset: auto; top: 0; left: 0;
+    width: 100vh; height: 100vw;
+    width: 100dvh; height: 100dvw;
+    transform-origin: top left;
+    transform: translateX(100vw) rotate(90deg);
+    transform: translateX(100dvw) rotate(90deg);
+    padding: 6px 10px;
+  }
+}
+/* Đồng hồ suy nghĩ hiển thị ngay trên avatar của bạn */
+#tlBoard .tl-clock { position: absolute; left: 14px; bottom: 96px; margin: 0; z-index: 25; background: #C0392B; color: #fff; font-weight: 800; font-size: 13px; border: 2px solid #fff; border-radius: 99px; padding: 2px 10px; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3); }
+/* Lá bài to hơn, trải hết chiều ngang bàn */
+body:has(#gamePane.stage) #tlBoard #tlHand { flex: 1; min-width: 0; justify-content: flex-start; }
+body:has(#gamePane.stage) #tlBoard #tlHand .tlc { width: 60px; height: 84px; padding: 4px 5px; }
+body:has(#gamePane.stage) #tlBoard #tlHand .tlc b { font-size: 19px; }
+body:has(#gamePane.stage) #tlBoard #tlHand .tlc i { font-size: 16px; }
+body:has(#gamePane.stage) #tlBoard #tlHand .tlc + .tlc { margin-left: -8px; }
+#tlBoard .ready-mid .ready-sum, #phBoard .ready-mid .ready-sum { font-size: 12px; margin: 0 0 4px; opacity: 0.9; }
+/* Hiệu ứng và chat */
+#gamePane:not(.stage) #chatBtn { display: none; }
+.fx-pop { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 70; font-weight: 900; font-size: 30px; color: #fff; text-shadow: 0 3px 0 #000; padding: 6px 18px; border-radius: 16px; background: rgba(0, 0, 0, 0.35); pointer-events: none; white-space: nowrap; animation: fxIn 1.4s ease-out both; }
+.fx-pop.heo { color: #FF6B6B; }
+.fx-pop.chot { color: #FFD43B; }
+.fx-pop.u { color: #7CFC9A; }
+.fx-pop.trang { color: #E0B3FF; }
+@keyframes fxIn { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); } 25% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+.tl-felt.shake { animation: shakeFelt 0.45s; }
+@keyframes shakeFelt { 0%, 100% { translate: 0 0; } 20% { translate: -6px 3px; } 40% { translate: 6px -3px; } 60% { translate: -4px 2px; } 80% { translate: 3px -1px; } }
+.chat-panel { position: absolute; right: 10px; bottom: 10px; width: 240px; height: 180px; z-index: 80; background: var(--surface); border: 2px solid var(--edge); border-radius: 16px; box-shadow: 3px 4px 0 var(--shadow); padding: 8px; display: flex; flex-direction: column; gap: 6px; color: var(--fg, #1d1d1d); }
+.chat-panel[hidden] { display: none; }
+.chat-head { display: flex; justify-content: space-between; align-items: center; }
+.chat-list { flex: 1; min-height: 0; overflow: auto; list-style: none; margin: 0; padding: 0 4px; font-size: 13px; }
+.chat-list li { margin: 0 0 6px; }
+.chat-list li.mine { color: var(--accent, #d6336c); }
+.chat-form { display: flex; gap: 6px; }
+.chat-form input { flex: 1; min-width: 0; padding: 6px 8px; border-radius: 10px; border: 2px solid var(--edge); font: inherit; }
+</style>
+<div class="wrap">
+  <header class="hub-head">
+    <div class="brand">
+      <span class="mascot" aria-hidden="true">🃏</span>
+      <div>
+        <h1>Forteen</h1>
+        <p class="sub">Game gia đình</p>
+      </div>
+    </div>
+  </header>
+  <nav class="hub-tabs" aria-label="Mục chính">
+    <button type="button" data-hub="score" class="on" aria-pressed="true">Chấm điểm bài</button>
+    <button type="button" data-hub="play" aria-pressed="false">Chơi bài</button>
+  </nav>
+  <div id="hubScore">
+  <header>
+    <div class="brand">
+      <span class="mascot" aria-hidden="true">📒</span>
+      <div>
+        <h1>Sổ điểm bài</h1>
+        <p class="sub" id="tagline"></p>
+      </div>
+    </div>
+    <button class="btn" id="resetBtn" type="button">Ván mới</button>
+  </header>
+
+  <div id="confirmBox" class="confirm" hidden>
+    <span>Xóa sạch sổ nợ và làm lại từ đầu? Tên với avatar vẫn giữ.</span>
+    <span class="row">
+      <button class="btn small danger" id="confirmYes" type="button">Xóa sạch</button>
+      <button class="btn small" id="confirmNo" type="button">Thôi để lại</button>
+    </span>
+  </div>
+
+  <div id="sampleBox" class="notice" hidden>
+    <span>Đây là 3 ván mẫu cho bạn xem app chạy sao. Xóa đi để bắt đầu bàn thật.</span>
+    <button class="btn small" id="clearSample" type="button">Xóa ván mẫu</button>
+  </div>
+
+  <section aria-labelledby="h-board">
+    <h2 id="h-board">Ai đang giàu, ai đang khóc</h2>
+    <div class="board" id="board"></div>
+    <div class="picker" id="picker" hidden></div>
+    <div class="tools">
+      <label class="check" for="lowWins" id="lowWinsWrap"><input type="checkbox" id="lowWins"> Điểm thấp xếp trên</label>
+      <button class="btn small" id="addPlayer" type="button">Thêm người chơi</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-entry">
+    <h2 id="h-entry">Ghi ván số <span id="roundNo"></span></h2>
+    <p class="seg-label">Chọn game</p>
+    <div class="seg" role="group" aria-label="Chọn game">
+      <button type="button" data-mode="phom">Phỏm</button>
+      <button type="button" data-mode="tienlen">Tiến lên</button>
+      <button type="button" data-mode="manual">Nhập tay</button>
+    </div>
+    <form class="entry" id="entry" autocomplete="off">
+      <div id="phomPane" class="pane">
+        <div>
+          <p class="hint-text">Chọn số phận từng người. Chạm lại để bỏ chọn. Ù thì cả bàn trả, ù đền thì mình người đền chịu.</p>
+          <div class="stack" id="phomRows"></div>
+        </div>
+        <div id="udenWrap" class="uden" hidden>
+          <label for="udenSel"><b>Ù đền</b>, kẻ đã đánh cả 3 lá:</label>
+          <select id="udenSel"></select>
+        </div>
+        <div>
+          <p class="block-title">Ăn chốt</p>
+          <div class="chots" id="chotRows"></div>
+          <button type="button" class="btn small" id="addChot" style="margin-top:8px">Thêm ăn chốt</button>
+        </div>
+      </div>
+
+      <div id="tlPane" class="pane" hidden>
+        <div>
+          <p class="hint-text" id="tlPaneHint"></p>
+          <div class="stack" id="tlRows"></div>
+        </div>
+        <div>
+          <p class="block-title">Chặt heo</p>
+          <div class="chots" id="heoRows"></div>
+          <button type="button" class="btn small" id="addHeo" style="margin-top:8px">Thêm chặt heo</button>
+        </div>
+      </div>
+
+      <div id="manualPane">
+        <div class="fields" id="fields"></div>
+      </div>
+
+      <details class="rates" id="ratesBox">
+        <summary>Mức tiền (nghìn đồng)</summary>
+        <div class="rategrid" id="rates"></div>
+      </details>
+      <div class="preview" id="preview" aria-live="polite"></div>
+
+      <div class="actions">
+        <span class="sum" id="sum"></span>
+        <span class="row">
+          <button class="btn" type="button" id="balance">Cân bằng ô còn trống</button>
+          <button class="btn primary" type="submit" id="submit">Ghi sổ!</button>
+        </span>
+      </div>
+    </form>
+  </section>
+
+  <section aria-labelledby="h-hist">
+    <h2 id="h-hist">Sổ cái <span id="unitNote"></span></h2>
+    <div id="history"></div>
+  </section>
+  </div>
+  <div id="hubPlay" hidden>
+    <div id="gameList" class="game-list">
+      <p class="hint-text">Chọn game để chơi. Kết quả tự ghi vào sổ chấm điểm.</p>
+      <button type="button" class="game-card" id="openTL">
+        <span class="gc-ico" aria-hidden="true">🃏</span>
+        <span><b>Tiến lên miền Nam</b><small>Đánh với 3 máy. Đánh đến hết hoặc đếm lá, tự tính tiền vào sổ.</small></span>
+      </button>
+      <button type="button" class="game-card" id="openPhom">
+        <span class="gc-ico" aria-hidden="true">🂭</span>
+        <span><b>Phỏm miền Nam</b><small>Chia 9 lá, ăn bài, hạ bộ, ù đền. Tự tính tiền vào sổ.</small></span>
+      </button>
+    </div>
+  <section class="tl-panel" id="gamePane" aria-labelledby="h-game" hidden>
+    <div class="tl-topbar">
+      <button class="btn small" id="gameBack" type="button">← Các game</button>
+      <span class="tl-round" id="tlRoundLbl"></span>
+      <button class="btn small" id="chatBtn" type="button">💬 Chat</button>
+      <button class="btn small danger" id="tlLeave" type="button">Rời bàn</button>
+    </div>
+    <p class="rotate-note" aria-hidden="true">📱 Xoay ngang điện thoại để chơi bài nhé</p>
+    <h2 id="h-game">Bàn Tiến lên</h2>
+    <div class="tl-setup">
+      <p class="hint-text">Tạo nhân vật của bạn trên máy này rồi vào bàn. Các ghế còn lại là máy.</p>
+      <div class="tl-cfgs" id="tlSetup"></div>
+      <div class="online-box" id="onlineBox" hidden></div>
+      <p class="tl-note" id="tlNote"></p>
+      <div class="seg tlgm-seg" role="group" aria-label="Kiểu chơi bài">
+        <button type="button" data-tlgm="het">Đánh đến hết</button>
+        <button type="button" data-tlgm="dem">Đếm lá</button>
+      </div>
+      <div class="tl-row tl-actions">
+        <button class="btn primary" id="tlStart" type="button">Chia bài</button>
+      </div>
+    </div>
+
+    <div id="tlBoard" hidden>
+      <div class="tl-felt">
+        <div id="tlOppTop" class="tl-opp tl-top"></div>
+        <div id="tlOppLeft" class="tl-opp tl-left"></div>
+        <div id="tlOppRight" class="tl-opp tl-right"></div>
+        <div class="tl-center" aria-live="polite">
+          <div class="tl-label" id="tlLabel"></div>
+          <div class="tl-table-row">
+            <button class="btn tl-side pass" id="tlPass" type="button">Bỏ lượt</button>
+            <div class="tl-trick" id="tlTrick"></div>
+            <button class="btn tl-side play primary" id="tlPlay" type="button">Đánh bài</button>
+          </div>
+        </div>
+        <p class="tl-clock" id="tlClock" hidden></p>
+        <div class="ready-mid" id="readyMidTl" hidden></div>
+        <div class="tl-bottom">
+          <div id="tlMe" class="tl-me"></div>
+          <div class="tl-hand" id="tlHand" aria-label="Bài của bạn"></div>
+        </div>
+      </div>
+      <p class="status" id="tlStatus" role="status"></p>
+      <div class="actions tl-actions">
+        <button class="btn" id="tlHint" type="button">Gợi ý</button>
+        <button class="btn" id="tlSort" type="button">Xếp: số</button>
+      </div>
+    </div>
+
+    <div id="phBoard" hidden>
+      <div class="tl-felt">
+        <div id="phOppTop" class="tl-opp tl-top"></div>
+        <div id="phOppLeft" class="tl-opp tl-left"></div>
+        <div id="phOppRight" class="tl-opp tl-right"></div>
+        <div class="ph-center" aria-live="polite">
+          <div class="tl-label" id="phLabel"></div>
+          <div class="ph-pile">
+            <div id="phStock"></div>
+            <div id="phDiscard"></div>
+          </div>
+        </div>
+        <div class="ready-mid" id="readyMidPh" hidden></div>
+        <div class="tl-bottom">
+          <div id="phMe" class="tl-me"></div>
+          <div class="ph-mine">
+            <div class="tl-hand" id="phHand" aria-label="Bài của bạn"></div>
+            <div class="ph-melds" id="phMelds"></div>
+          </div>
+        </div>
+      </div>
+      <p class="tl-clock" id="phClock" hidden></p>
+      <p class="status" id="phStatus" role="status"></p>
+      <div class="actions tl-actions ph-actions">
+        <button class="btn" id="phDraw" type="button">Bốc bài</button>
+        <button class="btn" id="phEat" type="button">Ăn</button>
+        <button class="btn" id="phLay" type="button">Hạ bộ</button>
+        <button class="btn" id="phMeld" type="button">Đánh bộ</button>
+        <button class="btn" id="phSort" type="button">Xếp: số</button>
+        <button class="btn" id="phU" type="button">Ù</button>
+        <button class="btn primary" id="phPlay" type="button">Đánh bài</button>
+      </div>
+    </div>
+    <section class="tl-result" id="tlResult" hidden></section>
+    <div class="fx-pop" id="fxPop" hidden></div>
+    <div class="chat-panel" id="chatPanel" hidden>
+      <div class="chat-head"><b>Trò chuyện</b><button class="btn small" id="chatClose" type="button">Đóng</button></div>
+      <ul class="chat-list" id="chatList" aria-live="polite"></ul>
+      <form class="chat-form" id="chatForm" autocomplete="off">
+        <input id="chatInput" maxlength="120" placeholder="Nhắn gì đó..." aria-label="Nội dung chat">
+        <button class="btn small primary" type="submit">Gửi</button>
+      </form>
+    </div>
+
+    <details class="rates">
+      <summary>Mức tiền (nghìn đồng)</summary>
+      <div class="rategrid" id="gameRates"></div>
+    </details>
+  </section>
+
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<style id="bubbles">
+.bubble { position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%); z-index: 70; background: #fff; color: #1d1d1d; border: 2px solid #222; border-radius: 14px; padding: 4px 9px; font-size: 13px; font-weight: 700; line-height: 1.25; width: max-content; max-width: 150px; text-align: center; box-shadow: 2px 3px 0 rgba(0,0,0,.25); pointer-events: none; animation: bubbleIn .18s ease-out; }
+.bubble::before { content: ""; position: absolute; left: 50%; top: 100%; margin-left: -9px; border: 9px solid transparent; border-top-color: #222; border-bottom: 0; }
+.bubble::after { content: ""; position: absolute; left: 50%; top: calc(100% - 2px); margin-left: -7px; border: 7px solid transparent; border-top-color: #fff; border-bottom: 0; }
+@keyframes bubbleIn { from { opacity: 0; transform: translateX(-50%) scale(.6); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+</style>
+<style id="reactions">
+.tl-fb { position: relative; }
+.tl-opp:has(.react-menu), .tl-me:has(.react-menu), .tl-who:has(.react-menu) { z-index: 90; }
+.react-menu { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); z-index: 200; display: flex; gap: 2px; background: #fff; border: 2px solid #222; border-radius: 99px; padding: 2px 6px; box-shadow: 2px 3px 0 rgba(0,0,0,.25); white-space: nowrap; }
+.react-menu button { border: 0; background: none; font-size: 20px; line-height: 1; padding: 4px 3px; cursor: pointer; }
+.react-hit { position: absolute; left: 50%; top: -18px; font-size: 40px; line-height: 1; pointer-events: none; z-index: 76; }
+.react-stamp { position: absolute; left: 50%; top: -28px; font-weight: 900; font-size: 20px; color: #e0302a; text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff; pointer-events: none; z-index: 77; white-space: nowrap; animation: stampPop 1s ease-out forwards; }
+.react-hit.slap { animation: hitSlap .6s ease-out forwards; }
+.react-hit.hammer { animation: hitHammer .6s ease-in forwards; }
+.react-hit.egg { animation: hitEgg .7s ease-in forwards; }
+.react-hit.kiss { animation: hitKiss 1s ease-out forwards; }
+.react-shake { animation: reactShake .5s linear; }
+@keyframes hitSlap { 0% { transform: translate(-160%, 0) rotate(-45deg); opacity: 0; } 45% { transform: translate(-30%, 0) rotate(-8deg); opacity: 1; } 65% { transform: translate(-50%, 0) rotate(10deg); } 100% { transform: translate(-50%, 0) rotate(0); opacity: 1; } }
+@keyframes hitHammer { 0% { transform: translate(-50%, -90px) rotate(-35deg); opacity: 0; } 75% { transform: translate(-50%, 0) rotate(25deg); opacity: 1; } 100% { transform: translate(-50%, 0) rotate(15deg); opacity: 1; } }
+@keyframes hitEgg { 0% { transform: translate(-50%, -110px) rotate(-20deg); opacity: 0; } 65% { transform: translate(-50%, 0) rotate(0); opacity: 1; } 100% { transform: translate(-50%, 6px) scale(1.15, .75); opacity: .95; } }
+@keyframes hitKiss { 0% { transform: translate(-50%, 0) scale(.4); opacity: 0; } 50% { transform: translate(-50%, -34px) scale(1.25); opacity: 1; } 100% { transform: translate(-50%, -70px) scale(.9); opacity: 0; } }
+@keyframes reactShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-7px) rotate(-5deg); } 40% { transform: translateX(7px) rotate(5deg); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
+@keyframes stampPop { 0% { transform: translate(-50%, 8px) scale(.4); opacity: 0; } 30% { transform: translate(-50%, 0) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -16px) scale(1); opacity: 0; } }
+</style>
+<style id="online">
+.online-box { display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 2px solid var(--edge); border-radius: 16px; box-shadow: 3px 4px 0 var(--shadow); padding: 10px 12px; margin: 10px 0; color: var(--fg, #1d1d1d); }
+.online-box[hidden] { display: none; }
+.online-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.online-row input { flex: 1; min-width: 120px; text-transform: uppercase; }
+.online-title { font-weight: 800; }
+.online-seats { margin: 0; padding-left: 18px; font-size: 14px; }
+</style>
+<script>
+// Phỏm miền Nam — engine thuần (không DOM). Dùng được trong trình duyệt và Node.
+// Quy ước: r = 0..12 (A,2,...,K), s = 0..3 (♣ ♦ ♥ ♠), id = r*4 + s.
+// Điểm: A = 1, 2..10 theo số, J=11, Q=12, K=13.
+(function (root) {
+  var SUITS = ['♣', '♦', '♥', '♠'];
+  var RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+  function makeDeck() {
+    var d = [];
+    for (var r = 0; r < 13; r++) for (var s = 0; s < 4; s++) d.push({ id: r * 4 + s, r: r, s: s });
+    return d;
+  }
+  function pts(c) { return c.r === 0 ? 1 : c.r + 1; }
+  function label(c) { return RANKS[c.r] + SUITS[c.s]; }
+
+  // Xáo bằng bộ sinh số ngẫu nhiên mật mã. rng(n) trả số nguyên trong [0, n).
+  function cryptoRng(n) {
+    var c = (typeof crypto !== 'undefined') ? crypto : require('crypto').webcrypto;
+    var max = 0x100000000 - (0x100000000 % n), x;
+    do { x = c.getRandomValues(new Uint32Array(1))[0]; } while (x >= max);
+    return x % n;
+  }
+  function shuffle(arr, rng) {
+    rng = rng || cryptoRng;
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = rng(i + 1), t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  // Phỏm hợp lệ: từ 3 lá trở lên cùng số (khác chất), hoặc từ 3 lá trở lên cùng chất liên tiếp (A thấp nhất, không vòng).
+  function isMeld(cards) {
+    var n = cards.length;
+    if (n < 3) return false;
+    var sameRank = cards.every(function (c) { return c.r === cards[0].r; });
+    if (sameRank) {
+      var suits = {};
+      for (var i = 0; i < n; i++) { if (suits[cards[i].s]) return false; suits[cards[i].s] = 1; }
+      return n <= 4;
+    }
+    var sameSuit = cards.every(function (c) { return c.s === cards[0].s; });
+    if (!sameSuit) return false;
+    var rs = cards.map(function (c) { return c.r; }).sort(function (a, b) { return a - b; });
+    for (var k = 1; k < rs.length; k++) if (rs[k] !== rs[k - 1] + 1) return false;
+    return true;
+  }
+
+  // Tìm cách xếp tay bài thành phỏm sao cho tổng điểm lá rác nhỏ nhất.
+  // Trả về {dead: [lá rác], deadPts, melds: [[...],...]}.
+  function bestMelds(cards) {
+    var memo = {};
+    function key(list) { return list.map(function (c) { return c.id; }).join(','); }
+    function rec(list) {
+      if (!list.length) return { dead: [], deadPts: 0, melds: [] };
+      var k = key(list);
+      if (memo[k]) return memo[k];
+      var first = list[0], rest = list.slice(1);
+      // Phương án 1: lá đầu là rác
+      var best = rec(rest);
+      var cand = { dead: [first].concat(best.dead), deadPts: pts(first) + best.deadPts, melds: best.melds };
+      var bestRes = cand;
+      // Phương án 2: lá đầu nằm trong một phỏm (duyệt mọi tổ hợp con của phần còn lại)
+      var m = rest.length;
+      for (var mask = 1; mask < (1 << m); mask++) {
+        var group = [first], left = [];
+        for (var i = 0; i < m; i++) { if (mask & (1 << i)) group.push(rest[i]); else left.push(rest[i]); }
+        if (group.length < 3 || !isMeld(group)) continue;
+        var sub = rec(left);
+        var res = { dead: sub.dead, deadPts: sub.deadPts, melds: [group].concat(sub.melds) };
+        if (res.deadPts < bestRes.deadPts || (res.deadPts === bestRes.deadPts && res.dead.length < bestRes.dead.length)) bestRes = res;
+      }
+      memo[k] = bestRes;
+      return bestRes;
+    }
+    // Sắp theo id để khóa memo ổn định
+    var sorted = cards.slice().sort(function (a, b) { return a.id - b.id; });
+    return rec(sorted);
+  }
+
+  function canWin(cards) { return bestMelds(cards).dead.length === 0; }
+
+  // ---- Trạng thái ván ----
+  // players: [{name, hand:[], laid:[[...]], out:false}]
+  // Ghế 0 đi đầu với 10 lá, các ghế khác 9 lá.
+  function newGame(names, opts) {
+    opts = opts || {};
+    var n = names.length;
+    if (n < 2 || n > 4) throw new Error('Phỏm cần 2 đến 4 người');
+    var deck = shuffle(makeDeck(), opts.rng);
+    var players = names.map(function (nm, i) {
+      return { seat: i, name: nm, hand: [], laid: [], out: false };
+    });
+    var cnt = [10].concat(new Array(n - 1).fill(9));
+    for (var p = 0; p < n; p++) {
+      for (var k = 0; k < cnt[p]; k++) players[p].hand.push(deck.pop());
+    }
+    return {
+      players: players,
+      n: n,
+      stock: deck,            // cuối mảng là lá trên cùng
+      discard: [],            // cuối mảng là lá đánh ra gần nhất
+      turn: 0,
+      phase: 'discard',       // ghế đầu phải đánh luôn (10 lá)
+      turns: 0,               // số lượt đã đi, để tính vòng
+      maxRounds: opts.maxRounds || 4,
+      lastDiscardSeat: null,
+      ate: false,             // lá đơn vừa bị ăn
+      ateGroup: false,        // bộ 3 lá vừa bị ăn (để tính ù đền)
+      groupOpen: null,        // {cards, by} bộ vừa được đánh ra, còn chờ người kế tiếp ăn
+      over: false,
+      result: null
+    };
+  }
+
+  function nextSeat(g, seat) {
+    var s = seat;
+    for (var i = 0; i < g.n; i++) {
+      s = (s + 1) % g.n;
+      if (!g.players[s].out) return s;
+    }
+    return seat;
+  }
+  function roundNo(g) { return Math.floor(g.turns / g.n) + 1; }
+
+  function findCard(list, id) {
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return i;
+    return -1;
+  }
+
+  // Ăn lá đánh ra: chỉ người kế tiếp được ăn, và lá ăn phải tạo phỏm với 2 lá trong tay.
+  // ids: 2 lá trong tay cùng với lá trên cùng của bàn tạo thành một phỏm.
+  function eat(g, seat, ids) {
+    if (g.over) return 'Ván đã kết thúc';
+    if (g.phase !== 'draw') return 'Chưa đến lượt bốc/ăn';
+    if (seat !== g.turn) return 'Chưa đến lượt bạn';
+    if (seat !== nextSeat(g, g.lastDiscardSeat)) return 'Chỉ người kế tiếp được ăn';
+    if (!g.discard.length) return 'Bàn không có lá để ăn';
+    if (g.groupOpen) return 'Bộ vừa đánh ra chỉ ăn được cả bộ';
+    var top = g.discard[g.discard.length - 1];
+    if (!ids || ids.length !== 2) return 'Chọn đúng 2 lá trong tay để ăn';
+    var p = g.players[seat], cards = [];
+    for (var i = 0; i < ids.length; i++) {
+      var idx = findCard(p.hand, ids[i]);
+      if (idx < 0) return 'Lá không có trong tay';
+      cards.push(p.hand[idx]);
+    }
+    var group = [top].concat(cards);
+    if (!isMeld(group)) return 'Ba lá này không tạo thành phỏm';
+    g.discard.pop();
+    ids.forEach(function (id) { p.hand.splice(findCard(p.hand, id), 1); });
+    p.laid.push(group);
+    g.ate = true;
+    g.ateGroup = false;
+    g.groupOpen = null;
+    g.lastEatSeat = seat;
+    g.eatenFrom = g.lastDiscardSeat;
+    g.lastEatCard = top;
+    (g.eatLog = g.eatLog || []).push(seat);
+    g.phase = 'discard';
+    if (canWin(p.hand)) return winNow(g, seat);
+    return null;
+  }
+
+  // Bốc từ chồng úp (khi không ăn).
+  function draw(g, seat) {
+    if (g.over) return 'Ván đã kết thúc';
+    if (g.phase !== 'draw') return 'Chưa đến lượt bốc';
+    if (seat !== g.turn) return 'Chưa đến lượt bạn';
+    if (!g.stock.length) { return endByExhaust(g); }
+    g.players[seat].hand.push(g.stock.pop());
+    g.groupOpen = null;
+    g.ateGroup = false;
+    g.phase = 'discard';
+    if (canWin(g.players[seat].hand)) return winNow(g, seat);
+    return null;
+  }
+
+  // Đánh một lá. Nếu lá đánh ra là lá cuối (sau khi đánh tay còn đủ phỏm) thì ù.
+  function discard(g, seat, id) {
+    if (g.over) return 'Ván đã kết thúc';
+    if (g.phase !== 'discard') return 'Hãy bốc hoặc ăn trước';
+    if (seat !== g.turn) return 'Chưa đến lượt bạn';
+    var p = g.players[seat], idx = findCard(p.hand, id);
+    if (idx < 0) return 'Lá không có trong tay';
+    var card = p.hand.splice(idx, 1)[0];
+    g.discard.push(card);
+    g.lastDiscardSeat = seat;
+    g.lastDiscardCard = card;
+    g.turns++;
+    // Ù khi tay còn lại toàn phỏm
+    if (canWin(p.hand)) {
+      return finish(g, { type: 'u', winner: seat });
+    }
+    g.ate = false;
+    g.ateGroup = false;
+    g.groupOpen = null;
+    g.turn = nextSeat(g, seat);
+    g.phase = 'draw';
+    if (roundNo(g) > g.maxRounds) return endByRounds(g);
+    return null;
+  }
+
+  // Đánh cả bộ (3 lá trở lên tạo thành phỏm) trong một lượt. Người kế tiếp có thể ăn cả bộ.
+  function discardMeld(g, seat, ids) {
+    if (g.over) return 'Ván đã kết thúc';
+    if (g.phase !== 'discard') return 'Hãy bốc hoặc ăn trước';
+    if (seat !== g.turn) return 'Chưa đến lượt bạn';
+    if (!ids || ids.length < 3) return 'Bộ đánh ra phải từ 3 lá';
+    var p = g.players[seat], cards = [];
+    for (var i = 0; i < ids.length; i++) {
+      var idx = findCard(p.hand, ids[i]);
+      if (idx < 0) return 'Lá không có trong tay';
+      cards.push(p.hand[idx]);
+    }
+    if (!isMeld(cards)) return 'Các lá này không tạo thành phỏm';
+    ids.forEach(function (id) { p.hand.splice(findCard(p.hand, id), 1); });
+    cards.forEach(function (c) { g.discard.push(c); });
+    g.groupOpen = { cards: cards, by: seat };
+    g.lastDiscardSeat = seat;
+    g.lastDiscardCard = cards[cards.length - 1];
+    g.turns++;
+    g.ate = false;
+    g.ateGroup = false;
+    if (canWin(p.hand)) return finish(g, { type: 'u', winner: seat });
+    g.turn = nextSeat(g, seat);
+    g.phase = 'draw';
+    if (roundNo(g) > g.maxRounds) return endByRounds(g);
+    return null;
+  }
+
+  // Ăn cả bộ vừa được đánh ra. Chỉ người kế tiếp được ăn.
+  function eatGroup(g, seat) {
+    if (g.over) return 'Ván đã kết thúc';
+    if (!g.groupOpen) return 'Không có bộ nào để ăn';
+    if (g.phase !== 'draw') return 'Chưa đến lượt ăn';
+    if (seat !== g.turn) return 'Chưa đến lượt bạn';
+    var grp = g.groupOpen;
+    if (seat !== nextSeat(g, grp.by)) return 'Chỉ người kế tiếp được ăn';
+    var k = grp.cards.length;
+    g.discard.splice(g.discard.length - k, k);
+    g.players[seat].laid.push(grp.cards.slice());
+    g.ate = false;
+    g.ateGroup = true;
+    g.eatenFrom = grp.by;
+    (g.eatLog = g.eatLog || []).push(seat);
+    g.groupOpen = null;
+    g.phase = 'discard';
+    if (canWin(g.players[seat].hand)) return winNow(g, seat);
+    return null;
+  }
+
+  // Ù tự động: ván kết thúc ngay khi tay bài xếp hết thành phỏm.
+  // Nếu người ù vừa ăn cả bộ của người khác thì là ù đền.
+  function winNow(g, seat) {
+    if (g.ateGroup && g.eatenFrom !== null && g.eatenFrom !== undefined && g.eatenFrom !== seat) {
+      return finish(g, { type: 'uden', winner: seat, payer: g.eatenFrom });
+    }
+    return finish(g, { type: 'u', winner: seat });
+  }
+
+  // Hạ phỏm: đặt các bộ hợp lệ từ tay xuống bàn cho mọi người cùng thấy. Chỉ khi đã bốc/ăn.
+  // groups: mảng các mảng id lá.
+  function lay(g, seat, groups) {
+    if (g.over) return 'Ván đã kết thúc';
+    if (g.phase !== 'discard') return 'Hạ bộ sau khi bốc hoặc ăn';
+    if (seat !== g.turn) return 'Chưa đến lượt bạn';
+    if (!groups || !groups.length) return 'Chọn bộ cần hạ';
+    var p = g.players[seat], seen = {}, built = [];
+    for (var gi = 0; gi < groups.length; gi++) {
+      var cards = [];
+      for (var k = 0; k < groups[gi].length; k++) {
+        var id = groups[gi][k];
+        if (seen[id]) return 'Một lá không thể dùng hai lần';
+        var idx = findCard(p.hand, id);
+        if (idx < 0) return 'Lá không có trong tay';
+        seen[id] = true;
+        cards.push(p.hand[idx]);
+      }
+      if (!isMeld(cards)) return 'Bộ đã chọn không hợp lệ';
+      built.push(cards);
+    }
+    built.forEach(function (cards) {
+      cards.forEach(function (c) { p.hand.splice(findCard(p.hand, c.id), 1); });
+      p.laid.push(cards);
+    });
+    if (canWin(p.hand)) return winNow(g, seat);
+    return null;
+  }
+
+  // Gửi bài: đưa một lá rác từ tay vào phỏm đã hạ của người khác (nối hợp lệ).
+  // target: ghế có phỏm; gi: chỉ số phỏm trong p.laid của người đó.
+  function sendCard(g, seat, id, target, gi) {
+    if (g.over) return 'Ván đã kết thúc';
+    if (g.phase !== 'discard') return 'Gửi bài sau khi bốc hoặc ăn';
+    if (seat !== g.turn) return 'Chưa đến lượt bạn';
+    var p = g.players[seat];
+    if (!p.laid.length) return 'Phải hạ phỏm trước khi gửi bài';
+    if (target === seat) return 'Chỉ gửi bài vào phỏm của người khác';
+    var tp = g.players[target];
+    if (!tp || !tp.laid[gi]) return 'Phỏm không tồn tại';
+    var idx = findCard(p.hand, id);
+    if (idx < 0) return 'Lá không có trong tay';
+    var card = p.hand[idx];
+    if (!isMeld(tp.laid[gi].concat([card]))) return 'Lá này không nối được phỏm đó';
+    p.hand.splice(idx, 1);
+    tp.laid[gi].push(card);
+    if (canWin(p.hand)) return winNow(g, seat);
+    return null;
+  }
+
+  // Ù khi ăn cả bộ của người khác để hoàn tất tay: người đánh bộ đó là ù đền.
+  // Ăn lá đơn rồi ù thì không tính ù đền.
+  function declareWin(g, seat) {
+    if (g.over) return 'Ván đã kết thúc';
+    if (seat !== g.turn) return 'Chưa đến lượt bạn';
+    if (g.phase !== 'draw' && g.phase !== 'discard') return 'Không thể ù lúc này';
+    var p = g.players[seat];
+    if (!canWin(p.hand)) return 'Tay bài chưa xếp đủ phỏm';
+    return winNow(g, seat);
+  }
+
+  function endByRounds(g) { return finish(g, { type: 'hetvong' }); }
+  function endByExhaust(g) { return finish(g, { type: 'hetbai' }); }
+
+  // Tính kết quả. Ù: người ù nhận từ tất cả người còn lại (sổ tính). Không ù: xếp theo điểm rác.
+  function finish(g, info) {
+    g.over = true;
+    var res = { type: info.type, winner: info.winner === undefined ? null : info.winner, ranks: {}, uden: null, lines: [] };
+    if (info.type === 'uden') res.uden = info.payer;
+    if (info.type === 'u' || info.type === 'uden') {
+      res.ranks[info.winner] = 'u';
+      res.lines.push(g.players[info.winner].name + (info.type === 'uden' ? ' ù đền' : ' ù'));
+    } else {
+      // Không ù: điểm rác từng người
+      var scored = g.players.map(function (p) {
+        var bm = bestMelds(p.hand);
+        var hasMeld = p.laid.length > 0 || bm.melds.length > 0;
+        var total = bm.deadPts;
+        return { seat: p.seat, points: total, moc: !hasMeld, lastTurn: g.discard.length ? 0 : 0 };
+      });
+      // Móm (không có phỏm nào) thì cháy
+      var contenders = scored.filter(function (x) { return !x.moc; }).sort(function (a, b) {
+        if (a.points !== b.points) return a.points - b.points;
+        return a.seat - b.seat;
+      });
+      var labels = ['nhat', 'nhi', 'ba', 'bet'];
+      contenders.forEach(function (x, i) { res.ranks[x.seat] = labels[i] || 'bet'; });
+      scored.filter(function (x) { return x.moc; }).forEach(function (x) { res.ranks[x.seat] = 'chay'; });
+      res.winner = contenders.length ? contenders[0].seat : null;
+      res.points = scored.reduce(function (o, x) { o[x.seat] = x.points; return o; }, {});
+      res.lines.push(info.type === 'hetvong' ? 'Hết 4 vòng, không ai ù' : 'Hết bài trong bộ, không ai ù');
+    }
+    g.result = res;
+    return null;
+  }
+
+  // Bot đơn giản: ăn nếu được, không thì bốc; đánh lá rác có điểm cao nhất.
+  function botTurn(g) {
+    var seat = g.turn, p = g.players[seat];
+    if (g.over) return;
+    if (g.phase === 'draw') {
+      var ate = false;
+      if (g.groupOpen && seat === nextSeat(g, g.groupOpen.by)) { eatGroup(g, seat); ate = true; }
+      if (!ate && g.discard.length && seat === nextSeat(g, g.lastDiscardSeat)) {
+        var top = g.discard[g.discard.length - 1];
+        var hand = p.hand;
+        for (var i = 0; i < hand.length && !ate; i++) for (var j = i + 1; j < hand.length && !ate; j++) {
+          if (isMeld([top, hand[i], hand[j]])) { eat(g, seat, [hand[i].id, hand[j].id]); ate = true; }
+        }
+      }
+      if (!ate) draw(g, seat);
+      if (g.over) return;
+    }
+    if (g.phase === 'discard') {
+      if (canWin(p.hand)) { winNow(g, seat); return; }
+      var bm = bestMelds(p.hand);
+      if (bm.melds.length) { lay(g, seat, bm.melds.map(function (m) { return m.map(function (c) { return c.id; }); })); if (g.over) return; }
+      bm = bestMelds(p.hand);
+      var pick = bm.dead.length ? bm.dead[bm.dead.length - 1] : p.hand[p.hand.length - 1];
+      discard(g, seat, pick.id);
+    }
+  }
+
+  var api = {
+    SUITS: SUITS, RANKS: RANKS, makeDeck: makeDeck, pts: pts, label: label,
+    shuffle: shuffle, cryptoRng: cryptoRng, isMeld: isMeld, bestMelds: bestMelds, canWin: canWin,
+    newGame: newGame, eat: eat, eatGroup: eatGroup, draw: draw, discard: discard, discardMeld: discardMeld, declareWin: declareWin, lay: lay, sendCard: sendCard,
+    botTurn: botTurn, nextSeat: nextSeat, roundNo: roundNo
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.Phom = api;
+})(typeof self !== 'undefined' ? self : this);
+
+var TL = (function () {
+var RANKS = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
+var SUITS = ['♣', '♦', '♥', '♠'];
+var NAMES = ['Bạn', 'An', 'Bình', 'Chi'];
+var PLACE = ['Nhất', 'Nhì', 'Ba', 'Bét'];
+var TYPE_LABEL = { single: 'lá lẻ', pair: 'đôi', triple: 'ba lá', quad: 'tứ quý', seq: 'sảnh', pairseq: 'đôi thông' };
+
+var SUIT_RANK = [1, 2, 3, 0]; // chỉ số chất gốc: 0 ♣ tép, 1 ♦ rô, 2 ♥ cơ, 3 ♠ bích. Thứ tự tăng dần: bích < tép < rô < cơ
+function str(c) { return c.r * 4 + SUIT_RANK[c.s]; }
+function isRed(c) { return c.s === 1 || c.s === 2; }
+function cardName(c) { return RANKS[c.r] + SUITS[c.s]; }
+function shuffle(a) {
+  for (var i = a.length - 1; i > 0; i--) { var j = Phom.cryptoRng(i + 1); var t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+function makeDeck() {
+  var d = [], id = 0;
+  for (var r = 0; r < 13; r++) for (var s = 0; s < 4; s++) d.push({ r: r, s: s, id: id++ });
+  return d;
+}
+
+function detect(cards) {
+  var n = cards.length;
+  if (!n) return null;
+  var sorted = cards.slice().sort(function (a, b) { return str(a) - str(b); });
+  var byR = {};
+  sorted.forEach(function (c) { (byR[c.r] = byR[c.r] || []).push(c); });
+  var ranks = Object.keys(byR).map(Number).sort(function (a, b) { return a - b; });
+  var top = str(sorted[n - 1]);
+  if (ranks.length === 1) {
+    var t = { 1: 'single', 2: 'pair', 3: 'triple', 4: 'quad' }[n];
+    return t ? { type: t, len: n, top: top, cards: sorted } : null;
+  }
+  for (var i = 1; i < ranks.length; i++) if (ranks[i] !== ranks[i - 1] + 1) return null;
+  if (ranks[ranks.length - 1] === 12) return null;
+  if (n === ranks.length) return n >= 3 ? { type: 'seq', len: n, top: top, cards: sorted } : null;
+  var allPairs = ranks.every(function (r) { return byR[r].length === 2; });
+  if (allPairs && ranks.length >= 3) return { type: 'pairseq', len: ranks.length, top: top, cards: sorted };
+  return null;
+}
+
+function isHeoCombo(c) {
+  return (c.type === 'single' || c.type === 'pair') && c.cards.every(function (x) { return x.r === 12; });
+}
+function isChatHeo(c, t) {
+  if (!t || !isHeoCombo(t)) return false;
+  if (c.type === 'quad') return true;
+  if (c.type === 'pairseq') return c.len >= 4 || (c.len >= 3 && t.type === 'single');
+  return false;
+}
+function beats(c, t) {
+  if (!t) return true;
+  if (isChatHeo(c, t)) return true;
+  return c.type === t.type && c.len === t.len && c.top > t.top;
+}
+
+function newGame(mode, names) {
+  var deck = shuffle(makeDeck());
+  var players = [0, 1, 2, 3].map(function (i) {
+    return { seat: i, name: (names && names[i]) || ('Ghế ' + (i + 1)), bot: i > 0, hand: [], out: false, place: 0 };
+  });
+  for (var k = 0; k < 52; k++) players[k % 4].hand.push(deck[k]);
+  players.forEach(function (p) { p.hand.sort(function (a, b) { return str(a) - str(b); }); });
+  var starter = 0;
+  players.forEach(function (p) {
+    if (p.hand.some(function (c) { return c.r === 0 && c.s === 3; })) starter = p.seat;
+  });
+  var g = { players: players, turn: starter, top: null, passed: {}, first: true, finished: [], cuts: [], over: false, mode: mode || 'het' };
+  // Thắng trắng: chia bài có tứ quý 2 thì thắng ngay, ván kết thúc trước khi ai đánh
+  players.forEach(function (p) {
+    if (p.hand.filter(function (c) { return c.r === 12; }).length === 4) {
+      g.trang = p.seat; g.over = true; g.finished = [p.seat]; g.turn = null; g.top = null; p.place = 1;
+    }
+  });
+  return g;
+}
+
+function nextActive(gm, seat) {
+  for (var i = 1; i <= 4; i++) { var s = (seat + i) % 4; if (!gm.players[s].out) return s; }
+  return seat;
+}
+function nextTurn(gm, seat) {
+  for (var i = 1; i <= 4; i++) {
+    var s = (seat + i) % 4, p = gm.players[s];
+    if (p.out || gm.passed[s]) continue;
+    if (gm.top && s === gm.top.seat) continue;
+    return s;
+  }
+  return seat;
+}
+function advance(gm, seat) {
+  var active = gm.players.filter(function (p) { return !p.out; });
+  if (gm.mode === 'dem' && gm.finished.length >= 1) {
+    var base = gm.finished.length;
+    active.slice().sort(function (a, b) { return a.hand.length - b.hand.length; }).forEach(function (p, i) {
+      p.place = base + i + 1;
+      gm.finished.push(p.seat);
+    });
+    gm.over = true; gm.top = null; gm.turn = null;
+    return;
+  }
+  if (gm.finished.length >= 3) {
+    var last = active[0];
+    if (last) { last.place = 4; gm.finished.push(last.seat); }
+    gm.over = true; gm.top = null; gm.turn = null;
+    return;
+  }
+  if (gm.top) {
+    var others = active.filter(function (p) { return p.seat !== gm.top.seat; });
+    if (others.every(function (p) { return gm.passed[p.seat]; })) {
+      var leader = gm.players[gm.top.seat].out ? nextActive(gm, gm.top.seat) : gm.top.seat;
+      gm.top = null; gm.passed = {}; gm.turn = leader;
+      return;
+    }
+  }
+  gm.turn = nextTurn(gm, seat);
+}
+
+function play(gm, seat, ids) {
+  if (gm.over) return 'Ván đã kết thúc.';
+  if (gm.turn !== seat) return 'Chưa đến lượt bạn.';
+  var p = gm.players[seat];
+  var cards = p.hand.filter(function (c) { return ids.indexOf(c.id) >= 0; });
+  if (!cards.length || cards.length !== ids.length) return 'Lá bài không hợp lệ.';
+  var c = detect(cards);
+  if (!c) return 'Đó không phải bộ hợp lệ.';
+  if (gm.first && !cards.some(function (x) { return x.r === 0 && x.s === 3; })) return 'Ván đầu phải có 3 bích ♠.';
+  if (!beats(c, gm.top ? gm.top.combo : null)) return 'Bộ này không đè được bàn.';
+  if (gm.top && gm.top.seat !== seat && isChatHeo(c, gm.top.combo)) {
+    gm.cuts.push({ cutter: seat, victim: gm.top.seat, cards: gm.top.combo.cards.slice() });
+  }
+  p.hand = p.hand.filter(function (x) { return ids.indexOf(x.id) < 0; });
+  gm.first = false;
+  gm.top = { combo: c, seat: seat };
+  if (!p.hand.length) { p.out = true; p.place = gm.finished.length + 1; gm.finished.push(seat); }
+  advance(gm, seat);
+  return null;
+}
+
+function pass(gm, seat) {
+  if (gm.over) return 'Ván đã kết thúc.';
+  if (gm.turn !== seat) return 'Chưa đến lượt bạn.';
+  if (!gm.top) return 'Bạn mở bàn nên không được bỏ lượt.';
+  gm.passed[seat] = true;
+  advance(gm, seat);
+  return null;
+}
+
+function candidates(hand, top, first) {
+  var out = [], byR = {};
+  hand.forEach(function (c) { (byR[c.r] = byR[c.r] || []).push(c); });
+  function add(cards) {
+    var c = detect(cards);
+    if (!c || !beats(c, top)) return;
+    if (first && !cards.some(function (x) { return x.r === 0 && x.s === 3; })) return;
+    out.push(c);
+  }
+  hand.forEach(function (c) { add([c]); });
+  Object.keys(byR).forEach(function (r) {
+    var cs = byR[r];
+    for (var k = 2; k <= cs.length; k++) add(cs.slice(0, k));
+  });
+  for (var s = 0; s <= 11; s++) {
+    for (var e = s + 2; e <= 11; e++) {
+      var ok = true;
+      for (var r = s; r <= e; r++) if (!byR[r]) { ok = false; break; }
+      if (!ok) break;
+      var base = [];
+      for (r = s; r < e; r++) base.push(byR[r][0]);
+      byR[e].forEach(function (tc) { add(base.concat([tc])); });
+      var pb = [], pok = true;
+      for (r = s; r < e; r++) {
+        if (byR[r].length < 2) { pok = false; break; }
+        pb.push(byR[r][0], byR[r][1]);
+      }
+      if (pok && byR[e].length >= 2) {
+        var tcs = byR[e];
+        for (var i = 0; i < tcs.length; i++) for (var j = i + 1; j < tcs.length; j++) add(pb.concat([tcs[i], tcs[j]]));
+      }
+    }
+  }
+  out.sort(function (a, b) {
+    if (!top) return a.len !== b.len ? a.len - b.len : a.top - b.top;
+    var ca = (a.type === top.type && a.len === top.len) ? 0 : 1;
+    var cb = (b.type === top.type && b.len === top.len) ? 0 : 1;
+    return ca !== cb ? ca - cb : a.top - b.top;
+  });
+  return out;
+}
+
+function botMove(gm, seat) {
+  var cands = candidates(gm.players[seat].hand, gm.top ? gm.top.combo : null, gm.first);
+  if (!cands.length) return null;
+  return cands[0].cards.map(function (c) { return c.id; });
+}
+
+function settle(gm, rates) {
+  var nets = {}, lines = [], winner = gm.finished[0];
+  gm.players.forEach(function (p) { nets[p.seat] = 0; });
+  if (gm.trang !== undefined && gm.trang !== null) {
+    gm.players.forEach(function (p) {
+      if (p.seat === gm.trang) return;
+      nets[p.seat] -= rates.trang; nets[gm.trang] += rates.trang;
+      lines.push(p.name + ' trả ' + gm.players[gm.trang].name + ' ' + rates.trang + 'k (thắng trắng)');
+    });
+    return { nets: nets, lines: lines, winner: gm.trang };
+  }
+  gm.players.forEach(function (p) {
+    if (p.seat === winner || !p.hand.length) return;
+    var amt = p.hand.length * rates.la;
+    nets[p.seat] -= amt; nets[winner] += amt;
+    lines.push(p.name + ' còn ' + p.hand.length + ' lá, trả ' + gm.players[winner].name + ' ' + amt + 'k');
+  });
+  gm.cuts.forEach(function (ct) {
+    var amt = 0;
+    ct.cards.forEach(function (c) { amt += isRed(c) ? rates.heodo : rates.heoden; });
+    nets[ct.victim] -= amt; nets[ct.cutter] += amt;
+    lines.push(gm.players[ct.cutter].name + ' chặt ' + ct.cards.map(cardName).join(' ') + ' của ' + gm.players[ct.victim].name + ': ' + amt + 'k');
+  });
+  return { nets: nets, lines: lines, winner: winner };
+}
+
+return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates: candidates, settle: settle, detect: detect, beats: beats, RANKS: RANKS, SUITS: SUITS, isRed: isRed, cardName: cardName, TYPE_LABEL: TYPE_LABEL, PLACE: PLACE };
+})();
+
+(function () {
+  var KEY = 'so-diem-bai-v2';
+  var STATUS = [['nhat', '🥇 Nhất'], ['nhi', '🥈 Nhì'], ['ba', '🥉 Ba'], ['bet', '💀 Bét'], ['chay', '🔥 Cháy'], ['u', '🎉 Ù']];
+  var RATES = {
+    phom: [['nhi', 'Nhì trả'], ['ba', 'Ba trả'], ['bet', 'Bét trả'], ['chay', 'Cháy trả'], ['u', 'Bị ù (mỗi người)'], ['uden', 'Ù đền (người đền trả)'], ['chot', 'Ăn chốt']],
+    tienlen: [['la', 'Mỗi lá còn lại'], ['heoden', 'Bị chặt heo đen'], ['heodo', 'Bị chặt heo đỏ'], ['trang', 'Thắng trắng (mỗi người trả)']]
+  };
+  var DEFAULT_RATES = { nhi: 1, ba: 2, bet: 3, chay: 4, u: 5, uden: 15, chot: 3, la: 1, heoden: 2, heodo: 3, trang: 10 };
+  var TAGLINES = [
+    'Ghi sổ cho khỏi cãi nhau.',
+    'Ai cháy khét lẹt, sổ này ghi hết.',
+    'Thua thì bảo bài xấu, thắng thì bảo tay to.',
+    'Sổ nợ đời, đừng chối.',
+    'Nhất nhì ba bét, tiền không biết nói dối.'
+  ];
+  var INK = '#1b1020';
+  var SKINS = [['#D9A066', 'Nâu sáng'], ['#F2C9A5', 'Da trắng'], ['#B77A4B', 'Nâu'], ['#8D5A33', 'Nâu đậm'], ['#F4A6A6', 'Hồng'], ['#9ACD7B', 'Xanh lá'], ['#C7D3E0', 'Xám xanh']];
+  var HAIRCOLORS = [['#1b1020', 'Đen'], ['#5B3A1E', 'Nâu'], ['#E8B923', 'Vàng'], ['#C2410C', 'Gừng'], ['#9CA3AF', 'Bạc'], ['#E64980', 'Hồng'], ['#339AF0', 'Xanh']];
+  var SHIRTS = [['#4DABF7', 'Xanh'], ['#FF6B6B', 'Đỏ'], ['#FFD43B', 'Vàng'], ['#69DB7C', 'Lá'], ['#B197FC', 'Tím'], ['#F8F9FA', 'Trắng'], ['#FFA94D', 'Cam']];
+  var PARTS = [
+    { k: 'face', label: 'Mặt', opts: [['round', 'Tròn'], ['long', 'Mặt ngựa'], ['square', 'Vuông'], ['pointy', 'Cằm nhọn']] },
+    { k: 'skin', label: 'Da', color: SKINS },
+    { k: 'hair', label: 'Tóc', opts: [['bob', 'Bob'], ['bui', 'Bù xù'], ['afro', 'Afro'], ['hoi', 'Hói'], ['duoi', 'Đuôi ngựa'], ['bun', 'Búi cao'], ['troc', 'Trọc']] },
+    { k: 'hc', label: 'Màu tóc', color: HAIRCOLORS },
+    { k: 'eyes', label: 'Mắt', opts: [['xe', 'Bọng mắt'], ['le', 'Lé'], ['trong', 'Trố'], ['nham', 'Nháy'], ['tihi', 'Híp'], ['sao', 'Mê tiền']] },
+    { k: 'brows', label: 'Mày', opts: [['thuong', 'Thường'], ['nhiu', 'Giận'], ['xe', 'Buồn'], ['dam', 'Nhướng'], ['ram', 'Rậm']] },
+    { k: 'nose', label: 'Mũi', opts: [['to', 'Mũi to'], ['heo', 'Mũi heo'], ['ho', 'Mũi khoằm'], ['nho', 'Mũi tẹt']] },
+    { k: 'mouth', label: 'Miệng', opts: [['mom', 'Môi chu răng hô'], ['cuoi', 'Cười toe'], ['ham', 'Há hốc'], ['meo', 'Méo xệch'], ['luoi', 'Lè lưỡi']] },
+    { k: 'beard', label: 'Râu', opts: [['none', 'Không'], ['ria', 'Ria cong'], ['rian', 'Ria chổi'], ['de', 'Râu dê'], ['quai', 'Quai nón'], ['lom', 'Lởm chởm']] },
+    { k: 'head', label: 'Mũ & hoa', opts: [['none', 'Không'], ['hoa', 'Hoa cài tóc'], ['vong', 'Vòng hoa'], ['nonla', 'Nón lá'], ['vuong', 'Vương miện'], ['bere', 'Mũ bê rê'], ['bang', 'Băng đô'], ['luoi', 'Mũ lưỡi trai']] },
+    { k: 'glasses', label: 'Kính', opts: [['none', 'Không'], ['tron', 'Kính tròn'], ['ram', 'Kính râm'], ['mot', 'Bịt một mắt'], ['day', 'Kính cận dày']] },
+    { k: 'ear', label: 'Tai', opts: [['none', 'Không'], ['hoa', 'Hoa tai hoa'], ['khuyen', 'Khuyên vàng']] },
+    { k: 'x', label: 'Hiệu ứng', multi: true, opts: [['nuoc_mat', 'Nước mắt'], ['ma_hong', 'Má hồng'], ['nep_nhan', 'Nếp nhăn'], ['mo_hoi', 'Mồ hôi'], ['ruoi', 'Con ruồi'], ['mun', 'Mụn'], ['bang', 'Băng cá nhân'], ['not', 'Nốt ruồi'], ['long', 'Lông ngực']] },
+    { k: 'shirt', label: 'Áo', color: SHIRTS }
+  ];
+  var AV_DEFAULT = [
+    { skin: '#D9A066', face: 'round', hair: 'bob', hc: '#5B3A1E', eyes: 'xe', brows: 'xe', nose: 'heo', mouth: 'mom', beard: 'ria', head: 'none', glasses: 'none', ear: 'hoa', x: ['nuoc_mat', 'ma_hong'], shirt: '#4DABF7' },
+    { skin: '#F2C9A5', face: 'long', hair: 'hoi', hc: '#1b1020', eyes: 'le', brows: 'dam', nose: 'to', mouth: 'cuoi', beard: 'de', head: 'nonla', glasses: 'none', ear: 'none', x: ['mo_hoi', 'nep_nhan'], shirt: '#FF6B6B' },
+    { skin: '#9ACD7B', face: 'square', hair: 'afro', hc: '#C2410C', eyes: 'trong', brows: 'nhiu', nose: 'ho', mouth: 'ham', beard: 'quai', head: 'none', glasses: 'ram', ear: 'none', x: ['mun', 'ruoi'], shirt: '#FFD43B' },
+    { skin: '#B77A4B', face: 'pointy', hair: 'bui', hc: '#E64980', eyes: 'sao', brows: 'ram', nose: 'nho', mouth: 'luoi', beard: 'lom', head: 'vuong', glasses: 'none', ear: 'khuyen', x: ['ma_hong', 'not', 'long'], shirt: '#B197FC' }
+  ];
+  var NICK_BEARD = { none: 'Thánh', ria: 'Bá Tước Ria Cong', rian: 'Thầy Ria Chổi', de: 'Cụ Râu Dê', quai: 'Đại Hiệp Quai Nón', lom: 'Anh Râu Lởm Chởm' };
+  var NICK_EYES = { xe: 'Khóc Vì Cháy', le: 'Mắt Lé', trong: 'Trố Mắt Nhìn Bài', nham: 'Nháy Mắt Ăn Gian', tihi: 'Cười Híp Mắt', sao: 'Mê Tiền' };
+  var pickTab = 'face';
+  var state;
+  var sel = {};      // kết quả đang chọn cho ván phỏm tiếp theo
+  var chots = [];    // các lần ăn chốt của ván tiếp theo
+  var uden = null;   // người đền trong ván ù hiện tại
+  var pickFor = null; // người đang chọn avatar
+  var tlWin = null;   // người về nhất ván tiến lên
+  var tlCards = {};   // số lá còn lại của từng người thua
+  var tlChops = [];   // các lần chặt heo của ván tiến lên
+  var toastTimer = null;
+
+  function uid() { return Math.random().toString(36).slice(2, 8); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmt(n) { return String(n).replace('-', '−'); }
+  function fmtSigned(n) { return n > 0 ? '+' + n : fmt(n); }
+  function pickOne(a) { return a[Math.floor(Math.random() * a.length)]; }
+  var $ = function (id) { return document.getElementById(id); };
+
+  function defAv(i) {
+    var a = JSON.parse(JSON.stringify(AV_DEFAULT[i % AV_DEFAULT.length]));
+    a.v = 2;
+    return a;
+  }
+  function randomAv() {
+    var a = { v: 2 };
+    PARTS.forEach(function (part) {
+      if (part.color) a[part.k] = pickOne(part.color)[0];
+      else if (part.multi) a[part.k] = part.opts.filter(function (o) { return Math.random() < (o[0] === 'ma_hong' ? 0.5 : 0.25); }).map(function (o) { return o[0]; });
+      else a[part.k] = pickOne(part.opts)[0];
+    });
+    return a;
+  }
+  function nickOf(a) { return (NICK_BEARD[a.beard] || 'Thánh') + ' ' + (NICK_EYES[a.eyes] || ''); }
+
+  var FACE = {
+    round: 'M24 50C24 30 36 22 50 22C64 22 76 30 76 50C76 70 64 79 50 79C36 79 24 70 24 50Z',
+    long: 'M28 46C28 25 38 16 50 16C62 16 72 25 72 46C72 68 62 84 50 84C38 84 28 68 28 46Z',
+    square: 'M25 36Q25 22 38 22L62 22Q75 22 75 36L75 62Q75 79 60 79L40 79Q25 79 25 62Z',
+    pointy: 'M24 40C24 26 36 21 50 21C64 21 76 26 76 40C76 58 62 74 50 83C38 74 24 58 24 40Z'
+  };
+  function flower(cx, cy, r, petal, mid) {
+    var t = '<g stroke-width="1.6">';
+    for (var i = 0; i < 5; i++) {
+      var ang = i * 72 * Math.PI / 180 - 1.57;
+      t += '<circle cx="' + (cx + Math.cos(ang) * r).toFixed(1) + '" cy="' + (cy + Math.sin(ang) * r).toFixed(1) + '" r="' + (r * 0.8).toFixed(1) + '" fill="' + petal + '"/>';
+    }
+    return t + '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r * 0.55).toFixed(1) + '" fill="' + mid + '"/></g>';
+  }
+  function hairBack(a) {
+    var f = 'fill="' + a.hc + '"';
+    switch (a.hair) {
+      case 'bob': return '<path ' + f + ' d="M15 58C9 24 30 7 50 7C70 7 91 24 85 58C84 72 80 80 74 80L76 50L24 50L26 80C20 80 16 72 15 58Z"/>';
+      case 'bui': return '<path ' + f + ' d="M22 44L13 30L24 30L19 15L32 22L34 7L44 18L50 5L56 18L66 7L68 22L81 15L76 30L87 30L78 44Q50 22 22 44Z"/>';
+      case 'afro': return '<circle ' + f + ' cx="50" cy="38" r="35"/>';
+      case 'hoi': return '<path ' + f + ' d="M25 58C16 50 17 34 27 34C25 42 26 50 27 60Z"/><path ' + f + ' d="M75 58C84 50 83 34 73 34C75 42 74 50 73 60Z"/>';
+      case 'duoi': return '<path ' + f + ' d="M72 30C95 28 98 58 84 74C84 58 80 46 70 40Z"/>';
+      case 'bun': return '<circle ' + f + ' cx="50" cy="11" r="10"/>';
+    }
+    return '';
+  }
+  function hairFront(a) {
+    var f = 'fill="' + a.hc + '"';
+    switch (a.hair) {
+      case 'bob': return '<path ' + f + ' d="M24 42C24 26 36 20 50 20C64 20 76 26 76 42C68 34 58 31 50 31C42 31 32 34 24 42Z"/>';
+      case 'bui': return '<path ' + f + ' d="M30 28L36 17L42 27L48 15L54 27L60 17L66 28Q48 22 30 28Z"/>';
+      case 'afro': return '<path ' + f + ' d="M25 34Q50 12 75 34Q50 26 25 34Z"/>';
+      case 'hoi': return '<path d="M38 26Q50 17 62 24M42 21Q50 15 58 20" fill="none" stroke="' + a.hc + '" stroke-width="2"/>';
+      case 'duoi':
+      case 'bun': return '<path ' + f + ' d="M24 42C24 24 36 18 50 18C64 18 76 24 76 42C66 31 34 31 24 42Z"/>';
+    }
+    return '';
+  }
+  function eyesSVG(a) {
+    var t = '';
+    switch (a.eyes) {
+      case 'le':
+        t = '<circle cx="39" cy="48" r="6.5" fill="#fff"/><circle cx="61" cy="48" r="6.5" fill="#fff"/>' +
+          '<circle cx="42" cy="49.5" r="2.7" fill="' + INK + '"/><circle cx="58" cy="49.5" r="2.7" fill="' + INK + '"/>';
+        break;
+      case 'trong':
+        t = '<circle cx="39" cy="48" r="8" fill="#fff"/><circle cx="61" cy="48" r="8" fill="#fff"/>' +
+          '<circle cx="39" cy="48" r="2.4" fill="' + INK + '"/><circle cx="61" cy="48" r="2.4" fill="' + INK + '"/>';
+        break;
+      case 'nham':
+        t = '<circle cx="39" cy="48" r="6" fill="#fff"/><circle cx="39" cy="48" r="2.4" fill="' + INK + '"/>' +
+          '<path d="M55 49Q61 43 67 49" fill="none" stroke-width="3"/>';
+        break;
+      case 'tihi':
+        t = '<path d="M33 50Q39 43 45 50M55 50Q61 43 67 50" fill="none" stroke-width="3"/>';
+        break;
+      case 'sao':
+        [39, 61].forEach(function (cx) {
+          t += '<circle cx="' + cx + '" cy="48" r="7.5" fill="#fff"/>' +
+            '<text x="' + cx + '" y="52.5" font-size="12" font-weight="800" text-anchor="middle" fill="#2F9E44" stroke="none" font-family="Arial, sans-serif">$</text>';
+        });
+        break;
+      default:
+        [39, 61].forEach(function (cx) {
+          t += '<path d="M' + (cx - 8) + ' 52Q' + cx + ' 62 ' + (cx + 8) + ' 52Q' + cx + ' 56 ' + (cx - 8) + ' 52Z" fill="#7a3b1e" opacity=".3" stroke="none"/>' +
+            '<ellipse cx="' + cx + '" cy="49" rx="6.5" ry="4" fill="#fff"/>' +
+            '<circle cx="' + (cx + 2) + '" cy="49.5" r="2.3" fill="' + INK + '"/>' +
+            '<path d="M' + (cx - 7.5) + ' 48Q' + cx + ' 42 ' + (cx + 7.5) + ' 48" fill="none" stroke-width="2.6"/>';
+        });
+    }
+    return t;
+  }
+  function browsSVG(a) {
+    switch (a.brows) {
+      case 'nhiu': return '<path d="M31 36L46 42M69 36L54 42" fill="none" stroke-width="3.4"/>';
+      case 'xe': return '<path d="M31 42L46 36M69 42L54 36" fill="none" stroke-width="3"/>';
+      case 'dam': return '<path d="M31 38Q39 30 47 37M54 41H69" fill="none" stroke-width="3"/>';
+      case 'ram': return '<path d="M31 39Q39 35 47 39M53 39Q61 35 69 39" fill="none" stroke-width="6"/>';
+    }
+    return '<path d="M32 39Q39 36 46 39M54 39Q61 36 68 39" fill="none" stroke-width="2.6"/>';
+  }
+  function noseSVG(a) {
+    switch (a.nose) {
+      case 'heo':
+        return '<ellipse cx="50" cy="61" rx="9.5" ry="6.5" fill="' + a.skin + '"/><ellipse cx="50" cy="61" rx="9.5" ry="6.5" fill="#c0392b" opacity=".18" stroke="none"/>' +
+          '<ellipse cx="45.5" cy="61" rx="2" ry="3" fill="' + INK + '"/><ellipse cx="54.5" cy="61" rx="2" ry="3" fill="' + INK + '"/>';
+      case 'ho':
+        return '<path d="M49 47C56 54 58 60 53 64C50 66 46 64 45 62" fill="none" stroke-width="2.4"/><circle cx="49" cy="64" r="1.2" fill="' + INK + '"/>';
+      case 'nho':
+        return '<path d="M47 62Q50 65 53 62" fill="none" stroke-width="2"/><circle cx="48" cy="61" r="0.9" fill="' + INK + '"/><circle cx="52" cy="61" r="0.9" fill="' + INK + '"/>';
+    }
+    return '<ellipse cx="50" cy="60" rx="7" ry="6" fill="' + a.skin + '"/><ellipse cx="50" cy="60" rx="7" ry="6" fill="#c0392b" opacity=".18" stroke="none"/>' +
+      '<ellipse cx="47.5" cy="62.5" rx="1.4" ry="1.8" fill="' + INK + '"/><ellipse cx="52.5" cy="62.5" rx="1.4" ry="1.8" fill="' + INK + '"/>';
+  }
+  function mouthSVG(a) {
+    switch (a.mouth) {
+      case 'cuoi': return '<path d="M38 66Q50 84 62 66Z" fill="#7B1E1E"/><path d="M41 66.5H59L57.5 70Q50 73 42.5 70Z" fill="#fff" stroke-width="1.2"/>';
+      case 'ham': return '<ellipse cx="50" cy="73" rx="6.5" ry="7.5" fill="#5C0F0F"/><ellipse cx="50" cy="78" rx="3.8" ry="2.4" fill="#FF8FA3" stroke-width="1.2"/>';
+      case 'meo': return '<path d="M39 75Q45 66 51 72T62 69" fill="none" stroke-width="2.8"/>';
+      case 'luoi': return '<path d="M39 68Q50 78 61 68" fill="none" stroke-width="2.8"/><path d="M46 73V81Q50 86 54 81V73Z" fill="#FF6B8B"/><path d="M50 74V80" fill="none" stroke-width="1.2"/>';
+    }
+    return '<path d="M42 69Q50 63 58 69Q57 78 50 78Q43 78 42 69Z" fill="#E03131"/><path d="M42.5 69Q50 72 57.5 69" fill="none" stroke-width="1.4"/><rect x="47.8" y="70.5" width="4.4" height="5.2" rx="1" fill="#fff" stroke-width="1.4"/>';
+  }
+  function beardSVG(a) {
+    var hc = a.hc, t = '';
+    switch (a.beard) {
+      case 'ria':
+        var m = 'M50 66C44 63 37 64 34 70C32 74 35 77 38 75M50 66C56 63 63 64 66 70C68 74 65 77 62 75';
+        t = '<path d="' + m + '" fill="none" stroke="' + INK + '" stroke-width="8"/><path d="' + m + '" fill="none" stroke="' + hc + '" stroke-width="4.6"/>' +
+          '<ellipse cx="50" cy="66" rx="7" ry="3.2" fill="' + hc + '"/>';
+        break;
+      case 'rian':
+        t = '<path d="M43 63H57L56 68H44Z" fill="' + hc + '"/>';
+        break;
+      case 'de':
+        t = '<path d="M43 78Q50 96 57 78Q50 83 43 78Z" fill="' + hc + '"/>';
+        break;
+      case 'lom':
+        [[36, 72, 36, 75], [41, 76, 41, 79], [46, 79, 46, 82], [54, 79, 54, 82], [59, 76, 59, 79], [64, 72, 64, 75], [33, 66, 33, 69], [67, 66, 67, 69], [44, 73, 44, 75], [56, 73, 56, 75], [38, 69, 38, 71], [62, 69, 62, 71], [50, 82, 50, 85]].forEach(function (q) {
+          t += 'M' + q[0] + ' ' + q[1] + 'L' + q[2] + ' ' + q[3];
+        });
+        t = '<path d="' + t + '" fill="none" stroke="' + hc + '" stroke-width="1.5"/>';
+        break;
+    }
+    return t;
+  }
+  function headSVG(a) {
+    switch (a.head) {
+      case 'hoa':
+        return flower(26, 22, 5.5, '#F06595', '#FFD43B') + flower(18, 31, 4, '#FF6B6B', '#FFD43B') +
+          '<path d="M17 36V52" fill="none"/><circle cx="17" cy="42" r="2" fill="#FFE066"/><circle cx="17" cy="47" r="2" fill="#FFE066"/><circle cx="17" cy="52" r="2" fill="#FFE066"/>';
+      case 'vong':
+        return flower(34, 14, 5, '#F06595', '#FFD43B') + flower(50, 10, 5.5, '#E599F7', '#FFD43B') + flower(66, 14, 5, '#F06595', '#FFD43B');
+      case 'nonla':
+        return '<path d="M26 38Q22 64 38 76M74 38Q78 64 62 76" fill="none" stroke="#C92A2A" stroke-width="2"/>' +
+          '<path d="M8 36L50 4L92 36Q50 46 8 36Z" fill="#E9C46A"/><path d="M50 4L30 40M50 4L50 42M50 4L70 40" fill="none" stroke="#B8860B" stroke-width="1.2"/>';
+      case 'vuong':
+        return '<path d="M28 26L31 8L41 17L50 4L59 17L69 8L72 26Z" fill="#FFD43B"/><circle cx="31" cy="8" r="2.2" fill="#FF6B6B"/><circle cx="50" cy="4" r="2.2" fill="#FF6B6B"/><circle cx="69" cy="8" r="2.2" fill="#FF6B6B"/>';
+      case 'bere':
+        return '<path d="M24 30C20 14 40 6 58 8C74 10 82 20 76 30C60 26 40 26 24 30Z" fill="#E03131"/><circle cx="56" cy="7" r="2.5" fill="' + INK + '"/>';
+      case 'bang':
+        return '<path d="M23 34Q50 22 77 34L77 40Q50 29 23 40Z" fill="#E03131"/><path d="M76 36L90 30L86 40L90 48L76 40Z" fill="#E03131"/>';
+      case 'luoi':
+        return '<path d="M24 36C24 12 76 12 76 36Q50 30 24 36Z" fill="#339AF0"/><path d="M54 34Q80 30 94 38Q74 44 54 38Z" fill="#1C7ED6"/><circle cx="50" cy="15" r="2" fill="' + INK + '"/>';
+    }
+    return '';
+  }
+  function glassesSVG(a) {
+    switch (a.glasses) {
+      case 'tron':
+        return '<circle cx="39" cy="48" r="8" fill="#fff" fill-opacity=".25" stroke-width="2.6"/><circle cx="61" cy="48" r="8" fill="#fff" fill-opacity=".25" stroke-width="2.6"/><path d="M47 47Q50 44 53 47M31 47L25 45M69 47L75 45" fill="none"/>';
+      case 'ram':
+        return '<path d="M30 43H47V54Q47 57 43 57H34Q30 57 30 54Z" fill="' + INK + '"/><path d="M53 43H70V54Q70 57 66 57H57Q53 57 53 54Z" fill="' + INK + '"/><path d="M47 45H53" fill="none"/><path d="M34 47H38M57 47H61" fill="none" stroke="#fff" stroke-width="1.6" opacity=".7"/>';
+      case 'mot':
+        return '<path d="M30 44Q50 30 76 40" fill="none" stroke-width="2.2"/><ellipse cx="39" cy="48" rx="9" ry="7.5" fill="' + INK + '"/>';
+      case 'day':
+        return '<circle cx="39" cy="48" r="10.5" fill="#E7F5FF" fill-opacity=".8"/><circle cx="61" cy="48" r="10.5" fill="#E7F5FF" fill-opacity=".8"/><circle cx="39" cy="48" r="7" fill="none" stroke-width="1"/><circle cx="61" cy="48" r="7" fill="none" stroke-width="1"/><path d="M49.5 47Q50 45 50.5 47M28.5 46L24 44M71.5 46L76 44" fill="none"/>';
+    }
+    return '';
+  }
+
+  function avatarSVG(a, mood, full) {
+    var x = a.x || [];
+    function has(k) { return x.indexOf(k) >= 0; }
+    var skin = a.skin, t = '';
+    t += hairBack(a);
+    t += '<path d="M42 70L42 86L58 86L58 70Z" fill="' + skin + '"/>';
+    if (full) t += fullBodyParts(a);
+    else t += '<path d="M8 101C10 87 30 83 40 82L60 82C70 83 90 87 92 101Z" fill="' + a.shirt + '"/>';
+    t += '<path d="M41 82L50 96L59 82Z" fill="' + skin + '"/>';
+    if (has('long')) t += '<path d="M45 88q2 -4 4 0M50 92q2 -4 4 0M54 87q2 -4 4 0" fill="none" stroke-width="1.5"/>';
+    t += '<ellipse cx="23" cy="52" rx="4.5" ry="6" fill="' + skin + '"/><ellipse cx="77" cy="52" rx="4.5" ry="6" fill="' + skin + '"/>';
+    if (a.ear === 'khuyen') t += '<circle cx="22.5" cy="61" r="3.6" fill="none" stroke="#F59F00" stroke-width="2"/><circle cx="77.5" cy="61" r="3.6" fill="none" stroke="#F59F00" stroke-width="2"/>';
+    if (a.ear === 'hoa') t += '<path d="M23 57V62" fill="none" stroke="#2F9E44"/>' + flower(23, 66, 3.4, '#E03131', '#8CE99A');
+    t += '<path d="' + (FACE[a.face] || FACE.round) + '" fill="' + skin + '"/>';
+    if (has('ma_hong')) t += '<circle cx="31" cy="60" r="6" fill="#FF5C7A" opacity=".4" stroke="none"/><circle cx="69" cy="60" r="6" fill="#FF5C7A" opacity=".4" stroke="none"/>';
+    if (has('nep_nhan')) t += '<path d="M38 28Q50 25 62 28M41 32Q50 29 59 32M30 61Q32 67 36 69M70 61Q68 67 64 69" fill="none" stroke-width="1.3"/>';
+    if (a.beard === 'quai') t += '<path d="M24 52Q22 82 50 90Q78 82 76 52Q72 66 62 65Q50 69 38 65Q28 66 24 52Z" fill="' + a.hc + '"/>';
+    t += eyesSVG(a) + browsSVG(a) + noseSVG(a) + mouthSVG(a) + beardSVG(a);
+    if (has('nuoc_mat') || mood === 'sad') {
+      t += '<path d="M38 55C35 60 36 64 39 64C42 64 42 60 38 55Z" fill="#74C0FC" stroke-width="1.4"/><path d="M62 55C59 60 60 64 63 64C66 64 66 60 62 55Z" fill="#74C0FC" stroke-width="1.4"/>';
+    }
+    if (has('mo_hoi')) t += '<path d="M79 28C75 34 76 38 80 38C84 38 84 34 79 28Z" fill="#A5D8FF" stroke-width="1.4"/>';
+    if (has('not')) t += '<circle cx="60" cy="65" r="1.9" fill="' + INK + '" stroke="none"/>';
+    if (has('mun')) t += '<circle cx="33" cy="38" r="1.8" fill="#E03131" stroke-width="1"/><circle cx="67" cy="35" r="1.8" fill="#E03131" stroke-width="1"/><circle cx="61" cy="43" r="1.6" fill="#E03131" stroke-width="1"/>';
+    if (has('bang')) t += '<g transform="rotate(-25 68 58)"><rect x="60" y="55" width="16" height="6" rx="3" fill="#F8D7B2" stroke-width="1.6"/><rect x="65.5" y="55" width="5" height="6" fill="#E9B88A" stroke="none"/></g>';
+    if (has('ruoi')) t += '<g transform="translate(72 40)" stroke-width="1"><ellipse cx="-2.5" cy="-2.8" rx="2.4" ry="1.3" fill="#fff" fill-opacity=".85"/><ellipse cx="2" cy="-2.8" rx="2.4" ry="1.3" fill="#fff" fill-opacity=".85"/><ellipse cx="0" cy="0" rx="2" ry="2.6" fill="' + INK + '"/></g>';
+    t += hairFront(a) + headSVG(a) + glassesSVG(a);
+    return '<svg class="avsvg" viewBox="' + (full ? '-2 -4 104 166' : '-4 -4 108 108') + '" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' +
+      '<g stroke="' + INK + '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none">' + t + '</g></svg>';
+  }
+  function fullBodyParts(a) {
+    var pants = '#3B4A7A', shoe = '#2A1D0E', sk = a.skin, sh = a.shirt, t = '';
+    t += '<path d="M39 120H49L48 150H38Z" fill="' + pants + '"/>';
+    t += '<path d="M51 120H61L62 150H52Z" fill="' + pants + '"/>';
+    t += '<ellipse cx="42" cy="153" rx="7.5" ry="4" fill="' + shoe + '"/>';
+    t += '<ellipse cx="58" cy="153" rx="7.5" ry="4" fill="' + shoe + '"/>';
+    t += '<path d="M33 82Q50 76 67 82L71 124Q50 130 29 124Z" fill="' + sh + '"/>';
+    t += '<path d="M33 86Q20 98 22 118" fill="none" stroke="' + INK + '" stroke-width="11" stroke-linecap="round"/>';
+    t += '<path d="M33 86Q20 98 22 118" fill="none" stroke="' + sk + '" stroke-width="6" stroke-linecap="round"/>';
+    t += '<path d="M67 86Q80 98 78 118" fill="none" stroke="' + INK + '" stroke-width="11" stroke-linecap="round"/>';
+    t += '<path d="M67 86Q80 98 78 118" fill="none" stroke="' + sk + '" stroke-width="6" stroke-linecap="round"/>';
+    t += '<circle cx="22" cy="121" r="4.5" fill="' + sk + '"/><circle cx="78" cy="121" r="4.5" fill="' + sk + '"/>';
+    return t;
+  }
+  function fbHTML(obj) { return '<span class="tl-fb">' + avatarSVG(obj.av, '', true) + '</span>'; }
+  function avHTML(p, cls, mood) {
+    return '<span class="avt ' + cls + '">' + avatarSVG(p.av, mood) + '</span>';
+  }
+  function nameOf(id) {
+    var p = state.players.filter(function (x) { return x.id === id; })[0];
+    return p ? (p.name || 'Ai đó') : 'Ai đó';
+  }
+
+  function defaults() {
+    var ps = ['An', 'Bình', 'Chi', 'Dũng'].map(function (n, i) { return { id: uid(), name: n, av: defAv(i) }; });
+    function round(a, note) {
+      var s = {};
+      ps.forEach(function (p, i) { s[p.id] = a[i]; });
+      return { id: uid(), scores: s, note: note };
+    }
+    return {
+      players: ps, mode: 'phom', lowWins: false, sample: true,
+      rates: JSON.parse(JSON.stringify(DEFAULT_RATES)),
+      rounds: [round([6, -1, -2, -3], ''), round([-4, 7, -1, -2], 'Cháy'), round([-5, -5, 15, -5], 'Ù')]
+    };
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var s = JSON.parse(raw);
+        if (s && Array.isArray(s.players) && s.players.length >= 2 && Array.isArray(s.rounds)) {
+          s.rates = Object.assign({}, DEFAULT_RATES, s.rates || {});
+          if (['manual', 'tienlen', 'game'].indexOf(s.mode) < 0) s.mode = 'phom';
+          s.players.forEach(function (p, i) {
+            if (!p.av || p.av.v !== 2) p.av = defAv(i);
+            delete p.avatar;
+          });
+          return s;
+        }
+      }
+    } catch (e) {}
+    return defaults();
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 4200);
+  }
+
+  function totals() {
+    var t = {};
+    state.players.forEach(function (p) { t[p.id] = 0; });
+    state.rounds.forEach(function (r) {
+      state.players.forEach(function (p) { t[p.id] += Number(r.scores[p.id]) || 0; });
+    });
+    return t;
+  }
+  function lowFirst() { return state.mode === 'manual' && !!state.lowWins; }
+  function rankOf(t, id) {
+    var mine = t[id], better = 0;
+    state.players.forEach(function (p) {
+      if (lowFirst() ? t[p.id] < mine : t[p.id] > mine) better++;
+    });
+    return better + 1;
+  }
+
+  /* ---------- Bảng tổng ---------- */
+  function renderBoard() {
+    var t = totals(), played = state.rounds.length > 0;
+    var canRemove = state.players.length > 2;
+    var unit = state.mode !== 'manual' ? '<span class="unit">k</span>' : '';
+    var ranks = {}, lastRank = 1;
+    state.players.forEach(function (p) {
+      ranks[p.id] = rankOf(t, p.id);
+      if (ranks[p.id] > lastRank) lastRank = ranks[p.id];
+    });
+    var spread = lastRank > 1;
+    $('board').innerHTML = state.players.map(function (p) {
+      var rk = ranks[p.id];
+      var lead = played && spread && rk === 1;
+      var last = played && spread && rk === lastRank;
+      var rankText = !played ? 'Chưa có ván' : (spread ? 'Hạng ' + rk : 'Hòa nhau');
+      return '<div class="card' + (lead ? ' lead' : '') + '">' +
+        '<div class="top"><span class="rank">' + rankText + '</span>' +
+        (lead ? '<span class="pill">Đại gia</span>' : '') +
+        (last ? '<span class="pill last">Nhà hảo tâm</span>' : '') +
+        (canRemove && !lead && !last ? '<button type="button" class="rm" data-rm="' + p.id + '" aria-label="Xóa người chơi">Xóa</button>' : '') +
+        '</div>' +
+        '<div class="who"><button type="button" class="av-btn' + (pickFor === p.id ? ' open' : '') + '" data-av="' + p.id + '" aria-label="Đổi avatar">' +
+        avHTML(p, 'lg', last ? 'sad' : '') + (lead ? '<span class="mood">🏆</span>' : last ? '<span class="mood">😭</span>' : '') + '</button>' +
+        '<div class="who-text"><input class="name" data-name-input="' + p.id + '" value="' + esc(p.name) + '" aria-label="Tên người chơi" maxlength="20">' +
+        '<div class="nick">' + esc(nickOf(p.av)) + '</div></div></div>' +
+        '<div class="total' + (t[p.id] < 0 ? ' neg' : '') + '">' + fmt(t[p.id]) + unit + '</div>' +
+        '</div>';
+    }).join('');
+    $('lowWins').checked = !!state.lowWins;
+    $('lowWinsWrap').hidden = state.mode !== 'manual';
+    $('addPlayer').disabled = state.players.length >= 8;
+    renderPicker();
+  }
+
+  function renderPicker() {
+    var box = $('picker');
+    var p = state.players.filter(function (x) { return x.id === pickFor; })[0];
+    box.hidden = !p;
+    if (!p) return;
+    var oldTabs = box.querySelector('.tabs');
+    var scrollLeft = oldTabs ? oldTabs.scrollLeft : 0;
+    var part = PARTS.filter(function (x) { return x.k === pickTab; })[0] || PARTS[0];
+    var cur = p.av[part.k];
+    var tabs = PARTS.map(function (x) {
+      return '<button type="button" class="tab' + (x.k === part.k ? ' on' : '') + '" data-tab="' + x.k + '">' + x.label + '</button>';
+    }).join('');
+    var body;
+    if (part.color) {
+      body = '<div class="swatches">' + part.color.map(function (c) {
+        var on = cur === c[0];
+        return '<button type="button" class="sw' + (on ? ' on' : '') + '" style="background:' + c[0] + '" data-k="' + part.k + '" data-v="' + c[0] + '" aria-label="' + c[1] + '" aria-pressed="' + on + '"></button>';
+      }).join('') + '</div>';
+    } else {
+      body = '<div class="opts">' + part.opts.map(function (o) {
+        var on = part.multi ? (cur || []).indexOf(o[0]) >= 0 : cur === o[0];
+        return '<button type="button" class="opt' + (on ? ' on' : '') + '" data-k="' + part.k + '" data-v="' + o[0] + '" aria-pressed="' + on + '">' + o[1] + '</button>';
+      }).join('') + '</div>';
+    }
+    box.innerHTML =
+      '<div class="pk-head"><div class="pk-who">' + avHTML(p, 'xl', '') +
+      '<div><div class="pk-name">' + esc(p.name) + '</div><div class="pk-nick">' + esc(nickOf(p.av)) + '</div></div></div>' +
+      '<span class="row"><button type="button" class="btn small" data-rand="1">🎲 Bựa hóa</button><button type="button" class="btn small primary" data-close="1">Xong</button></span></div>' +
+      '<div class="tabs" role="tablist">' + tabs + '</div>' + body;
+    var nt = box.querySelector('.tabs');
+    if (nt) nt.scrollLeft = scrollLeft;
+  }
+
+  /* ---------- Phỏm ---------- */
+  function computePhom() {
+    var ps = state.players, r = state.rates, d = {}, notes = [];
+    var info = { type: '', winner: null, payer: null, chays: [], gain: 0, chotE: [] };
+    ps.forEach(function (p) { d[p.id] = 0; });
+    var uWin = null, win = null;
+    ps.forEach(function (p) {
+      if (sel[p.id] === 'u') uWin = p.id;
+      if (sel[p.id] === 'nhat') win = p.id;
+    });
+    var ok = false, msg = '';
+    if (uWin) {
+      info.winner = uWin;
+      if (uden && uden !== uWin && d[uden] !== undefined) {
+        d[uden] -= r.uden; d[uWin] += r.uden;
+        notes.push('Ù đền');
+        info.type = 'uden'; info.payer = uden;
+      } else {
+        ps.forEach(function (p) { if (p.id !== uWin) { d[p.id] -= r.u; d[uWin] += r.u; } });
+        notes.push('Ù');
+        info.type = 'u';
+      }
+      info.gain = d[uWin];
+      ok = true;
+    } else if (win) {
+      var missing = 0;
+      info.winner = win; info.type = 'win';
+      ps.forEach(function (p) {
+        if (p.id === win) return;
+        var s = sel[p.id];
+        if (!s) { missing++; return; }
+        var a = r[s] || 0;
+        d[p.id] -= a; d[win] += a;
+        if (s === 'chay') { notes.push('Cháy'); info.chays.push(p.id); }
+      });
+      info.gain = d[win];
+      if (missing) msg = 'Còn ' + missing + ' người chưa biết số phận.';
+      else ok = true;
+    } else {
+      msg = 'Chưa ai nhất, ghi sổ gì được. Chọn người nhất hoặc người ù đã.';
+    }
+    var cnt = 0;
+    chots.forEach(function (c) {
+      if (c.e && c.q && c.e !== c.q && d[c.e] !== undefined && d[c.q] !== undefined) {
+        d[c.q] -= r.chot; d[c.e] += r.chot; cnt++; info.chotE.push(c.e);
+      }
+    });
+    if (cnt) notes.push('Chốt' + (cnt > 1 ? ' ×' + cnt : ''));
+    var uniq = notes.filter(function (n, i) { return notes.indexOf(n) === i; });
+    return { ok: ok, msg: msg, deltas: d, note: uniq.join(', '), info: info };
+  }
+
+  function phomJoke(res) {
+    var i = res.info, r = state.rates, w = nameOf(i.winner), m = '';
+    if (i.type === 'uden') {
+      m = pickOne([
+        nameOf(i.payer) + ' đền ' + r.uden + 'k cho ' + w + '. Ba lá liền mà đánh, khóc đi 😭',
+        w + ' ù đền, ' + nameOf(i.payer) + ' ôm ví mà khóc 💸'
+      ]);
+    } else if (i.type === 'u') {
+      m = pickOne([w + ' ù rồi! Cả bàn xỉu ngang 🎉', w + ' ù, cả bàn ôm ví thở dài 💸']);
+    } else {
+      var chayNames = i.chays.map(nameOf).join(', ');
+      if (i.chays.length) m = chayNames + ' cháy khét lẹt 🔥. ' + w + ' húp ' + i.gain + 'k';
+      else m = pickOne([w + ' nhất ván, húp ' + i.gain + 'k 🥇', w + ' ăn đậm ' + i.gain + 'k, nhớ khao nhé 🍻']);
+    }
+    if (i.chotE.length) m += '. ' + i.chotE.map(nameOf).join(', ') + ' ăn chốt, hơi bị đỉnh 😋';
+    return m;
+  }
+
+  function sanitizeChots() {
+    var ids = state.players.map(function (p) { return p.id; });
+    chots.forEach(function (c) {
+      if (ids.indexOf(c.e) < 0) c.e = ids[0];
+      if (ids.indexOf(c.q) < 0 || c.q === c.e) c.q = ids.filter(function (i) { return i !== c.e; })[0];
+    });
+    Object.keys(sel).forEach(function (k) { if (ids.indexOf(k) < 0) delete sel[k]; });
+  }
+
+  function renderUden(u) {
+    $('udenWrap').hidden = !u;
+    if (!u) { uden = null; return; }
+    if (uden === u || !state.players.some(function (p) { return p.id === uden; })) uden = null;
+    $('udenSel').innerHTML = '<option value="">Không có ai đền</option>' +
+      state.players.filter(function (p) { return p.id !== u; }).map(function (p) {
+        return '<option value="' + p.id + '" data-label="' + p.id + '"' + (p.id === uden ? ' selected' : '') + '>' + esc(p.name) + '</option>';
+      }).join('');
+  }
+
+  function renderPhom() {
+    sanitizeChots();
+    var uPlayer = null;
+    state.players.forEach(function (p) { if (sel[p.id] === 'u') uPlayer = p.id; });
+    $('phomRows').innerHTML = state.players.map(function (p) {
+      var chips = STATUS.map(function (s) {
+        var on = sel[p.id] === s[0];
+        var dis = uPlayer && p.id !== uPlayer;
+        return '<button type="button" class="chip st-' + s[0] + (on ? ' on' : '') + '" data-p="' + p.id + '" data-st="' + s[0] +
+          '" aria-pressed="' + on + '"' + (dis ? ' disabled' : '') + '>' + s[1] + '</button>';
+      }).join('');
+      return '<div class="prow"><div class="pname">' + avHTML(p, 'sm') + '<span data-label="' + p.id + '">' + esc(p.name) + '</span></div><div class="chips">' + chips + '</div></div>';
+    }).join('');
+
+    function opts(selected) {
+      return state.players.map(function (p) {
+        return '<option value="' + p.id + '" data-label="' + p.id + '"' + (p.id === selected ? ' selected' : '') + '>' + esc(p.name) + '</option>';
+      }).join('');
+    }
+    $('chotRows').innerHTML = chots.map(function (c, i) {
+      return '<div class="chot">' +
+        '<select data-c="e" data-i="' + i + '" aria-label="Người ăn chốt">' + opts(c.e) + '</select>' +
+        '<span>ăn của</span>' +
+        '<select data-c="q" data-i="' + i + '" aria-label="Người bị ăn chốt">' + opts(c.q) + '</select>' +
+        '<button type="button" class="rm" data-crm="' + i + '" aria-label="Xóa lần ăn chốt">Xóa</button></div>';
+    }).join('');
+    renderUden(uPlayer);
+    $('addChot').disabled = state.players.length < 2;
+    updatePhom();
+  }
+
+  function renderRates() {
+    $('rates').innerHTML = (RATES[state.mode] || []).map(function (x) {
+      return '<div class="rate"><label for="rate-' + x[0] + '">' + x[1] + '</label>' +
+        '<input id="rate-' + x[0] + '" data-rate="' + x[0] + '" type="number" min="0" inputmode="numeric" value="' + state.rates[x[0]] + '"></div>';
+    }).join('');
+    $('gameRates').innerHTML = RATES.tienlen.map(function (x) {
+      return '<div class="rate"><label for="grate-' + x[0] + '">' + x[1] + '</label>' +
+        '<input id="grate-' + x[0] + '" data-rate="' + x[0] + '" type="number" min="0" inputmode="numeric" value="' + state.rates[x[0]] + '"></div>';
+    }).join('');
+  }
+
+  function showResult(res) {
+    if (res.ok) {
+      $('preview').innerHTML = state.players.map(function (p) {
+        var v = res.deltas[p.id];
+        return '<span class="pv"><span data-label="' + p.id + '">' + esc(p.name) + '</span> <b class="' + (v > 0 ? 'pos' : v < 0 ? 'neg' : '') + '">' + fmtSigned(v) + 'k</b></span>';
+      }).join('');
+      $('sum').textContent = '';
+    } else {
+      $('preview').innerHTML = '';
+      $('sum').textContent = res.msg;
+    }
+    $('submit').disabled = !res.ok;
+  }
+  function updatePhom() { showResult(computePhom()); }
+
+  /* ---------- Tiến lên ---------- */
+  function computeTL() {
+    var ps = state.players, la = state.rates.la, d = {}, total = 0, missing = 0, maxN = 0, maxId = null;
+    ps.forEach(function (p) { d[p.id] = 0; });
+    var ok = false, msg = '';
+    if (!tlWin || d[tlWin] === undefined) {
+      msg = 'Chưa ai về nhất. Chọn người hết bài trước đã.';
+    } else {
+      ps.forEach(function (p) {
+        if (p.id === tlWin) return;
+        var n = tlCards[p.id];
+        if (!n) { missing++; return; }
+        d[p.id] -= n * la; d[tlWin] += n * la; total += n;
+        if (n > maxN) { maxN = n; maxId = p.id; }
+      });
+      if (missing) msg = 'Còn ' + missing + ' người chưa đếm lá.';
+      else ok = true;
+    }
+    var gain = tlWin ? d[tlWin] : 0, cuts = [];
+    tlChops.forEach(function (c) {
+      if (c.e && c.q && c.e !== c.q && d[c.e] !== undefined && d[c.q] !== undefined) {
+        var amt = c.h === 'do' ? state.rates.heodo : state.rates.heoden;
+        d[c.q] -= amt; d[c.e] += amt;
+        cuts.push({ e: c.e, q: c.q, h: c.h, amt: amt });
+      }
+    });
+    var note = ok ? total + ' lá' + (cuts.length ? ', chặt heo' + (cuts.length > 1 ? ' ×' + cuts.length : '') : '') : '';
+    return { ok: ok, msg: msg, deltas: d, note: note, info: { winner: tlWin, gain: gain, total: total, maxN: maxN, maxId: maxId, cuts: cuts } };
+  }
+
+  function tlJoke(res) {
+    var i = res.info, w = nameOf(i.winner);
+    var m = pickOne([w + ' về nhất, húp ' + i.gain + 'k 🥇', w + ' hết bài trước, cả bàn đếm lá mà khóc 😭']);
+    if (i.maxN >= 13) m += '. ' + nameOf(i.maxId) + ' cóng nguyên 13 lá, nể luôn 💀';
+    else if (i.maxN >= 10) m += '. ' + nameOf(i.maxId) + ' ôm ' + i.maxN + ' lá, bài đẹp quá 🤡';
+    if (i.cuts && i.cuts.length) {
+      var c = i.cuts[0];
+      m += '. ' + nameOf(c.e) + ' chặt heo ' + (c.h === 'do' ? 'đỏ' : 'đen') + ' của ' + nameOf(c.q) + ', ' + c.amt + 'k vào túi 🐷' +
+        (i.cuts.length > 1 ? ' (còn ' + (i.cuts.length - 1) + ' lần chặt nữa)' : '');
+    }
+    return m;
+  }
+
+  function renderTL() {
+    var ids = state.players.map(function (p) { return p.id; });
+    if (tlWin && ids.indexOf(tlWin) < 0) tlWin = null;
+    Object.keys(tlCards).forEach(function (k) { if (ids.indexOf(k) < 0) delete tlCards[k]; });
+    $('tlRows').innerHTML = state.players.map(function (p) {
+      var win = tlWin === p.id;
+      var right = win
+        ? '<span class="win-note">Hết bài rồi, ngồi đếm tiền thôi.</span>'
+        : '<span class="step"><button type="button" data-step="dec" data-p="' + p.id + '" aria-label="Bớt một lá">\u2212</button>' +
+          '<input id="tl-' + p.id + '" data-tlin="' + p.id + '" inputmode="numeric" placeholder="0" value="' + (tlCards[p.id] === undefined ? '' : tlCards[p.id]) + '" aria-label="Số lá còn lại">' +
+          '<button type="button" data-step="inc" data-p="' + p.id + '" aria-label="Thêm một lá">+</button></span><span class="step-unit">lá</span>';
+      return '<div class="prow"><div class="pname">' + avHTML(p, 'sm') + '<span data-label="' + p.id + '">' + esc(p.name) + '</span></div>' +
+        '<div class="tl-line"><button type="button" class="chip st-nhat' + (win ? ' on' : '') + '" data-tlwin="' + p.id + '" aria-pressed="' + win + '">🏆 Về nhất</button>' + right + '</div></div>';
+    }).join('');
+    tlChops.forEach(function (c) {
+      if (ids.indexOf(c.e) < 0) c.e = ids[0];
+      if (ids.indexOf(c.q) < 0 || c.q === c.e) c.q = ids.filter(function (i) { return i !== c.e; })[0];
+    });
+    function heoOpts(selected) {
+      return state.players.map(function (p) {
+        return '<option value="' + p.id + '" data-label="' + p.id + '"' + (p.id === selected ? ' selected' : '') + '>' + esc(p.name) + '</option>';
+      }).join('');
+    }
+    $('heoRows').innerHTML = tlChops.map(function (c, i) {
+      return '<div class="chot">' +
+        '<select data-hc="e" data-i="' + i + '" aria-label="Người chặt heo">' + heoOpts(c.e) + '</select>' +
+        '<span>chặt</span>' +
+        '<select data-hc="h" data-i="' + i + '" aria-label="Loại heo bị chặt">' +
+        '<option value="den"' + (c.h === 'den' ? ' selected' : '') + '>heo đen</option>' +
+        '<option value="do"' + (c.h === 'do' ? ' selected' : '') + '>heo đỏ</option></select>' +
+        '<span>của</span>' +
+        '<select data-hc="q" data-i="' + i + '" aria-label="Người bị chặt heo">' + heoOpts(c.q) + '</select>' +
+        '<button type="button" class="rm" data-hrm="' + i + '" aria-label="Xóa lần chặt heo">Xóa</button></div>';
+    }).join('');
+    $('addHeo').disabled = ids.length < 2;
+    updateTL();
+  }
+  function updateTL() {
+    $('tlPaneHint').textContent = 'Chọn người về nhất, rồi đếm lá còn lại của từng người thua. Mỗi lá trả ' + state.rates.la + 'k cho người nhất. Có chặt heo thì thêm ở dưới.';
+    showResult(computeTL());
+  }
+
+  /* ---------- Nhập tay ---------- */
+  function renderManual() {
+    $('fields').innerHTML = state.players.map(function (p) {
+      return '<div class="cell"><label for="in-' + p.id + '" data-label="' + p.id + '">' + esc(p.name) + '</label>' +
+        '<div class="field"><button type="button" class="sign" data-sign="' + p.id + '" aria-label="Đổi dấu cộng trừ">±</button>' +
+        '<input id="in-' + p.id + '" data-in="' + p.id + '" inputmode="numeric" placeholder="0" autocomplete="off"></div></div>';
+    }).join('');
+  }
+  function readVal(id) {
+    var el = $('in-' + id);
+    var v = el ? el.value.trim() : '';
+    if (v === '' || v === '-') return null;
+    var n = parseInt(v, 10);
+    return isNaN(n) ? null : n;
+  }
+  function updateManual() {
+    var sum = 0, empty = 0, filled = 0;
+    state.players.forEach(function (p) {
+      var v = readVal(p.id);
+      if (v === null) empty++; else { sum += v; filled++; }
+    });
+    $('preview').innerHTML = '';
+    $('sum').innerHTML = 'Tổng ván: <b>' + fmtSigned(sum) + '</b>' + (sum === 0 && filled ? ' (cân đối)' : '');
+    $('balance').disabled = !(empty === 1 && filled > 0 && sum !== 0);
+    $('submit').disabled = filled === 0;
+  }
+
+  /* ---------- Sổ cái ---------- */
+  function renderHistory() {
+    var h = $('history');
+    $('unitNote').textContent = state.mode !== 'manual' ? '(nghìn đồng)' : '';
+    if (!state.rounds.length) {
+      h.innerHTML = '<div class="empty">Chưa có ván nào, túi ai cũng còn đầy. Chọn số phận từng người ở trên rồi bấm Ghi sổ.</div>';
+      return;
+    }
+    var head = '<tr><th>Ván</th>' + state.players.map(function (p) {
+      return '<th data-label="' + p.id + '">' + esc(p.name) + '</th>';
+    }).join('') + '<th></th></tr>';
+    var rows = state.rounds.map(function (r, i) {
+      return '<tr><td>' + (i + 1) + (r.note ? '<span class="note">' + esc(r.note) + '</span>' : '') + '</td>' +
+        state.players.map(function (p) {
+          var v = Number(r.scores[p.id]) || 0;
+          return '<td class="' + (v > 0 ? 'pos' : v < 0 ? 'neg' : '') + '">' + fmtSigned(v) + '</td>';
+        }).join('') +
+        '<td class="del"><button type="button" class="rm" data-del="' + r.id + '" aria-label="Xóa ván ' + (i + 1) + '">Xóa</button></td></tr>';
+    }).reverse().join('');
+    h.innerHTML = '<div class="scroller"><table><thead>' + head + '</thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  function applyMode() {
+    var m = state.mode === 'game' ? 'tienlen' : state.mode, game = false;
+    $('h-entry').hidden = game;
+    $('entry').hidden = game;
+    $('phomPane').hidden = m !== 'phom';
+    $('tlPane').hidden = m !== 'tienlen';
+    $('manualPane').hidden = m !== 'manual';
+    $('balance').hidden = m !== 'manual';
+    $('ratesBox').hidden = m === 'manual';
+    var bs = document.querySelectorAll('[data-mode]');
+    for (var i = 0; i < bs.length; i++) {
+      var on = bs[i].getAttribute('data-mode') === m;
+      bs[i].classList.toggle('on', on);
+      bs[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    if (m === 'phom') updatePhom(); else if (m === 'tienlen') updateTL(); else if (m === 'manual') updateManual();
+    if (game) renderGame();
+  }
+
+  function renderAll() {
+    renderBoard(); renderManual(); renderPhom(); renderTL(); renderRates(); renderHistory(); renderGame();
+    $('roundNo').textContent = state.rounds.length + 1;
+    $('sampleBox').hidden = !state.sample;
+    applyMode();
+  }
+
+  function syncNames() {
+    state.players.forEach(function (p) {
+      var els = document.querySelectorAll('[data-label="' + p.id + '"]');
+      for (var i = 0; i < els.length; i++) els[i].textContent = p.name;
+    });
+  }
+
+  /* ---------- Sự kiện ---------- */
+  document.querySelector('.seg').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-mode]');
+    if (!b) return;
+    state.mode = b.getAttribute('data-mode');
+    save(); renderBoard(); renderRates(); renderHistory(); applyMode();
+  });
+
+  $('board').addEventListener('input', function (e) {
+    var id = e.target.getAttribute('data-name-input');
+    if (!id) return;
+    var p = state.players.filter(function (x) { return x.id === id; })[0];
+    if (p) { p.name = e.target.value; syncNames(); save(); }
+  });
+  $('board').addEventListener('click', function (e) {
+    var av = e.target.closest('[data-av]');
+    if (av) {
+      var pid = av.getAttribute('data-av');
+      pickFor = pickFor === pid ? null : pid;
+      renderBoard();
+      return;
+    }
+    var btn = e.target.closest('[data-rm]');
+    if (!btn) return;
+    if (!btn.classList.contains('armed')) {
+      btn.classList.add('armed'); btn.textContent = 'Chắc chưa?';
+      setTimeout(function () { btn.classList.remove('armed'); btn.textContent = 'Xóa'; }, 3000);
+      return;
+    }
+    var id = btn.getAttribute('data-rm');
+    state.players = state.players.filter(function (p) { return p.id !== id; });
+    state.rounds.forEach(function (r) { delete r.scores[id]; });
+    delete sel[id];
+    delete tlCards[id];
+    if (tlWin === id) tlWin = null;
+    if (uden === id) uden = null;
+    if (pickFor === id) pickFor = null;
+    chots = chots.filter(function (c) { return c.e !== id && c.q !== id; });
+    save(); renderAll();
+  });
+  $('picker').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    if (b.hasAttribute('data-close')) { pickFor = null; renderBoard(); return; }
+    if (b.hasAttribute('data-tab')) { pickTab = b.getAttribute('data-tab'); renderPicker(); return; }
+    var p = state.players.filter(function (x) { return x.id === pickFor; })[0];
+    if (!p) return;
+    if (b.hasAttribute('data-rand')) {
+      p.av = randomAv();
+    } else if (b.hasAttribute('data-k')) {
+      var k = b.getAttribute('data-k'), v = b.getAttribute('data-v');
+      var part = PARTS.filter(function (x) { return x.k === k; })[0];
+      if (part && part.multi) {
+        var arr = p.av[k] || [], ix = arr.indexOf(v);
+        if (ix >= 0) arr.splice(ix, 1); else arr.push(v);
+        p.av[k] = arr;
+      } else {
+        p.av[k] = v;
+      }
+    } else return;
+    save(); renderBoard(); renderPhom(); renderTL();
+  });
+  $('lowWins').addEventListener('change', function (e) {
+    state.lowWins = e.target.checked; save(); renderBoard();
+  });
+  $('addPlayer').addEventListener('click', function () {
+    if (state.players.length >= 8) return;
+    state.players.push({
+      id: uid(), name: 'Người ' + (state.players.length + 1),
+      av: randomAv()
+    });
+    save(); renderAll();
+  });
+
+  $('phomRows').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-st]');
+    if (!b || b.disabled) return;
+    var p = b.getAttribute('data-p'), st = b.getAttribute('data-st');
+    if (sel[p] === st) {
+      delete sel[p];
+    } else {
+      if (st === 'u') sel = {};
+      else if (st === 'nhat') Object.keys(sel).forEach(function (k) { if (sel[k] === 'nhat') delete sel[k]; });
+      sel[p] = st;
+    }
+    renderPhom();
+  });
+  $('tlRows').addEventListener('click', function (e) {
+    var w = e.target.closest('[data-tlwin]');
+    if (w) {
+      var wid = w.getAttribute('data-tlwin');
+      if (tlWin === wid) tlWin = null; else { tlWin = wid; delete tlCards[wid]; }
+      renderTL();
+      return;
+    }
+    var b = e.target.closest('[data-step]');
+    if (!b) return;
+    var p = b.getAttribute('data-p'), cur = tlCards[p], n;
+    if (b.getAttribute('data-step') === 'inc') n = Math.min(13, (cur || 0) + 1);
+    else n = cur === undefined ? undefined : cur - 1;
+    if (n === undefined || n < 1) delete tlCards[p]; else tlCards[p] = n;
+    $('tl-' + p).value = tlCards[p] === undefined ? '' : tlCards[p];
+    updateTL();
+  });
+  $('tlRows').addEventListener('input', function (e) {
+    var p = e.target.getAttribute('data-tlin');
+    if (!p) return;
+    var n = parseInt(e.target.value.replace(/[^0-9]/g, ''), 10);
+    if (isNaN(n) || n < 1) { delete tlCards[p]; e.target.value = ''; }
+    else { n = Math.min(13, n); tlCards[p] = n; e.target.value = String(n); }
+    updateTL();
+  });
+  $('addHeo').addEventListener('click', function () {
+    var ids = state.players.map(function (p) { return p.id; });
+    tlChops.push({ e: ids[0], q: ids[1], h: 'den' });
+    renderTL();
+  });
+  $('heoRows').addEventListener('change', function (e) {
+    var el = e.target, i = el.getAttribute('data-i');
+    if (i === null) return;
+    tlChops[+i][el.getAttribute('data-hc')] = el.value;
+    updateTL();
+  });
+  $('heoRows').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-hrm]');
+    if (!b) return;
+    tlChops.splice(+b.getAttribute('data-hrm'), 1);
+    renderTL();
+  });
+  $('udenSel').addEventListener('change', function (e) {
+    uden = e.target.value || null;
+    updatePhom();
+  });
+  $('addChot').addEventListener('click', function () {
+    var ids = state.players.map(function (p) { return p.id; });
+    chots.push({ e: ids[0], q: ids[1] });
+    renderPhom();
+  });
+  $('chotRows').addEventListener('change', function (e) {
+    var el = e.target, i = el.getAttribute('data-i');
+    if (i === null) return;
+    chots[+i][el.getAttribute('data-c')] = el.value;
+    updatePhom();
+  });
+  $('chotRows').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-crm]');
+    if (!b) return;
+    chots.splice(+b.getAttribute('data-crm'), 1);
+    renderPhom();
+  });
+  $('rates').addEventListener('input', function (e) {
+    var k = e.target.getAttribute('data-rate');
+    if (!k) return;
+    state.rates[k] = Math.max(0, parseInt(e.target.value, 10) || 0);
+    save();
+    if (state.mode === 'tienlen') updateTL(); else updatePhom();
+  });
+
+  $('fields').addEventListener('input', function (e) {
+    var el = e.target;
+    if (el.hasAttribute('data-in')) {
+      el.value = el.value.replace(/[^0-9-]/g, '').replace(/(?!^)-/g, '');
+      updateManual();
+    }
+  });
+  $('fields').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-sign]');
+    if (!b) return;
+    var inp = $('in-' + b.getAttribute('data-sign'));
+    var v = inp.value.trim();
+    inp.value = v.charAt(0) === '-' ? v.slice(1) : '-' + v;
+    inp.focus(); updateManual();
+  });
+  $('balance').addEventListener('click', function () {
+    var sum = 0, target = null;
+    state.players.forEach(function (p) {
+      var v = readVal(p.id);
+      if (v === null) target = p.id; else sum += v;
+    });
+    if (target) { $('in-' + target).value = String(-sum); updateManual(); }
+  });
+
+  $('entry').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var scores = {}, note = '', msg = '';
+    var wasSample = state.sample;
+    var roundNo = (wasSample ? 0 : state.rounds.length) + 1;
+    if (state.mode === 'phom') {
+      var res = computePhom();
+      if (!res.ok) return;
+      scores = res.deltas; note = res.note; msg = phomJoke(res);
+    } else if (state.mode === 'tienlen') {
+      var tr = computeTL();
+      if (!tr.ok) return;
+      scores = tr.deltas; note = tr.note; msg = tlJoke(tr);
+    } else {
+      var any = false;
+      state.players.forEach(function (p) {
+        var v = readVal(p.id);
+        if (v !== null) any = true;
+        scores[p.id] = v === null ? 0 : v;
+      });
+      if (!any) return;
+      msg = 'Đã ghi ván ' + roundNo + '. Cộng cộng trừ trừ xong ✍️';
+    }
+    if (wasSample) { state.rounds = []; state.sample = false; }
+    state.rounds.push({ id: uid(), scores: scores, note: note });
+    sel = {}; chots = []; uden = null; tlWin = null; tlCards = {}; tlChops = [];
+    save(); renderAll();
+    toast(msg);
+  });
+
+  $('history').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-del]');
+    if (!b) return;
+    var id = b.getAttribute('data-del');
+    state.rounds = state.rounds.filter(function (r) { return r.id !== id; });
+    save(); renderAll();
+  });
+
+  $('resetBtn').addEventListener('click', function () { $('confirmBox').hidden = false; });
+  $('confirmNo').addEventListener('click', function () { $('confirmBox').hidden = true; });
+  $('confirmYes').addEventListener('click', function () {
+    state.rounds = []; state.sample = false; $('confirmBox').hidden = true;
+    save(); renderAll();
+    toast('Sổ sạch bong, làm lại cuộc đời 🧼');
+  });
+  $('clearSample').addEventListener('click', function () {
+    state.rounds = []; state.sample = false; save(); renderAll();
+  });
+
+
+  /* ---------- Chơi Tiến lên trên bàn sổ ---------- */
+  var tg = null, tlOrder = [], tlSel = {}, tlTimer = null, tlFlash = '', tlRecorded = false, tlGameMode = 'het';
+  var tlRoundNo = 0, tlOpen = false, tlSortMode = 'rank', tlHintList = null, tlHintIdx = 0, tlHintKey = '', tlTrickKey = '';
+  var TL_SUIT_RANK = [1, 2, 3, 0];
+  function sortHand(h) {
+    return h.slice().sort(function (a, b) {
+      if (tlSortMode === 'suit') return (a.s - b.s) || (a.r - b.r);
+      return (a.r * 4 + TL_SUIT_RANK[a.s]) - (b.r * 4 + TL_SUIT_RANK[b.s]);
+    });
+  }
+  function tlShowView() {
+    $('gamePane').hidden = !tlOpen;
+    $('gameList').hidden = tlOpen;
+    renderGame();
+    phRender();
+  }
+  function hubShow(name) {
+    $('hubScore').hidden = name !== 'score';
+    $('hubPlay').hidden = name !== 'play';
+    document.querySelectorAll('[data-hub]').forEach(function (b) {
+      var on = b.getAttribute('data-hub') === name;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    if (name === 'play') tlShowView();
+  }
+  function tlPileAttrs(c, i, seat) {
+    var rot = ((c.id * 37) % 13) - 6;
+    var dirs = [['0px', '120px'], ['-150px', '0px'], ['0px', '-110px'], ['150px', '0px']];
+    var d = dirs[seat] || dirs[0];
+    return 'disabled style="--i:' + i + ';--r:' + rot + 'deg;--fx:' + d[0] + ';--fy:' + d[1] + '"';
+  }
+  var TL_NAMES = ['Bạn', 'Máy 1', 'Máy 2', 'Máy 3'];
+
+  function tlPlayerById(id) {
+    return state.players.filter(function (p) { return p.id === id; })[0];
+  }
+  // Nhân vật của người chơi trên máy này (lưu trên máy, không ai chọn thay ai)
+  var ME_KEY = 'forteen-me', meMem = undefined, meDraft = null;
+  function meGet() {
+    if (meMem !== undefined) return meMem;
+    try { meMem = JSON.parse(localStorage.getItem(ME_KEY)) || null; } catch (e) { meMem = null; }
+    return meMem;
+  }
+  function meSet(m) {
+    meMem = m;
+    try { localStorage.setItem(ME_KEY, JSON.stringify(m)); } catch (e) {}
+  }
+  function tlFixSetup() {
+    if (!Array.isArray(state.tlSetup) || state.tlSetup.length !== 4) {
+      state.tlSetup = [0, 1, 2, 3].map(function (i) {
+        var p = state.players[i];
+        return p
+          ? { name: p.name, av: JSON.parse(JSON.stringify(p.av)), pid: p.id }
+          : { name: TL_NAMES[i], av: defAv(i + 2), pid: null };
+      });
+    }
+    state.tlSetup.forEach(function (s, i) {
+      if (!s.av || !s.av.b) s.av = defAv(i);
+      if (s.pid && !tlPlayerById(s.pid)) s.pid = null;
+    });
+    var me = meGet();
+    if (me) { state.tlSetup[0].name = me.name; state.tlSetup[0].av = JSON.parse(JSON.stringify(me.av)); }
+    return state.tlSetup;
+  }
+  var PH_RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  function tlCardHTML(c, cls, attrs, ph) {
+    var rk = ph ? PH_RANKS[c.r] : TL.RANKS[c.r];
+    return '<button type="button" class="tlc' + (TL.isRed(c) ? ' red' : '') + (cls ? ' ' + cls : '') + '" ' + (attrs || '') + '>' +
+      '<b>' + rk + '</b><i>' + TL.SUITS[c.s] + '</i></button>';
+  }
+  function tlDescribe(c) {
+    var t = TL.TYPE_LABEL[c.type] || '';
+    if (c.type === 'seq') return t + ' ' + c.len + ' lá';
+    if (c.type === 'pairseq') return t + ' ' + c.len + ' đôi';
+    return t;
+  }
+  function tlHas3(cards) {
+    return cards.some(function (x) { return x.r === 0 && x.s === 3; });
+  }
+
+  function renderTlSetup() {
+    var setup = tlFixSetup(), me = meGet();
+    renderOnlineBox();
+    $('tlStart').hidden = !me || !!online;
+    if (!me) {
+      if (!meDraft) meDraft = { name: '', av: randomAv() };
+      $('tlSetup').innerHTML = '<div class="tl-cfg">' + fbHTML({ av: meDraft.av }) +
+        '<div class="tl-cfg-body"><div class="hint-text">Nhân vật của bạn</div>' +
+        '<input class="tl-name" id="meName" value="' + esc(meDraft.name) + '" maxlength="20" placeholder="Tên của bạn" aria-label="Tên của bạn">' +
+        '<div class="tl-cfg-row"><button type="button" class="btn small" id="meRand">🎲 Ngẫu nhiên</button>' +
+        '<button type="button" class="btn small primary" id="meCreate">Vào bàn</button></div></div></div>';
+      return;
+    }
+    if (online && online.view) {
+      $('tlStart').hidden = true;
+      $('tlSetup').innerHTML = '<div class="tl-cfg">' + fbHTML(setup[0]) + '<div class="tl-cfg-body"><div class="hint-text">Bạn</div><div class="tl-nm">' + esc(me.name) + '</div></div></div>';
+      renderOnlineBox();
+      return;
+    }
+    var others = setup.slice(1).map(function (s, i) {
+      return '<div class="tl-cfg">' + fbHTML(s) + '<div class="tl-cfg-body"><div class="hint-text">Máy ' + (i + 1) + '</div>' +
+        '<div class="tl-nm">' + esc(s.name) + '</div></div></div>';
+    }).join('');
+    $('tlSetup').innerHTML = '<div class="tl-cfg">' + fbHTML(setup[0]) +
+      '<div class="tl-cfg-body"><div class="hint-text">Bạn</div><div class="tl-nm">' + esc(me.name) + '</div>' +
+      '<div class="tl-cfg-row"><button type="button" class="btn small" id="meEdit">Đổi nhân vật</button></div></div></div>' + others;
+  }
+
+  function tlOppHTML(i) {
+    var e = tg.players[i], s = tlOrder[i];
+    var turn = !tg.over && tg.turn === i;
+    var badge = e.place ? TL.PLACE[e.place - 1] : ((tg.top && tg.passed[i]) ? 'Bỏ lượt' : '');
+    var stack = e.out ? '<span class="tl-out">Hết bài</span>'
+      : '<span class="tl-stack"><i></i><i></i><i></i><b>' + e.hand.length + '</b></span>';
+    return '<div class="tl-who' + (turn ? ' turn' : '') + '">' + fbHTML(s) +
+      '<div class="tl-nm">' + esc(s.name) + '</div>' + (badge ? '<span class="sb">' + badge + '</span>' : '') + '</div>' + stack;
+  }
+
+  // ===== Hiệu ứng và chat trong bàn =====
+  var fxState = { tlCuts: 0, phEats: 0, endFor: null, trangFor: null }, fxTO = null, chatLog = [], chatTimers = [];
+  var BOT_LINES = ['Hay đấy!', 'Chơi tiếp nào', 'Ối!', 'Khó quá nha', 'Ha ha', 'Đợi tí nhé'];
+  function fxShow(text, kind) {
+    var el = $('fxPop');
+    if (!el) return;
+    el.textContent = text; el.className = 'fx-pop ' + kind; el.hidden = false;
+    void el.offsetWidth;
+    clearTimeout(fxTO); fxTO = setTimeout(function () { el.hidden = true; }, 1400);
+    var felt = document.querySelector('#gamePane:not([hidden]) .tl-felt');
+    if (felt) { felt.classList.remove('shake'); void felt.offsetWidth; felt.classList.add('shake'); }
+  }
+  function fxTick() {
+    renderBubbles();
+    if (curGame !== 'phom' && tg) {
+      var n = tg.cuts ? tg.cuts.length : 0;
+      if (n > fxState.tlCuts) {
+        fxShow('CHẶT HEO!', 'heo');
+        for (var i = fxState.tlCuts; i < n; i++) if (tg.cuts[i].victim !== 0) botSay(tg.cuts[i].victim, 'Ối, bị chặt rồi!');
+      }
+      fxState.tlCuts = n;
+      if (tg.over && tg.trang !== undefined && tg.trang !== null && fxState.trangFor !== tg) { fxState.trangFor = tg; fxShow('THẮNG TRẮNG!', 'trang'); }
+    }
+    if (curGame === 'phom' && pg) {
+      var e = pg.eatLog ? pg.eatLog.length : 0;
+      if (e > fxState.phEats) {
+        fxShow('ĂN CHỐT!', 'chot');
+        var eater = pg.eatLog[e - 1];
+        if (eater !== 0) botSay(eater, 'Ăn chốt rồi!');
+      }
+      fxState.phEats = e;
+      if (pg.over && fxState.endFor !== pg) {
+        fxState.endFor = pg;
+        if (pg.result.type === 'uden') fxShow('Ù ĐỀN!', 'u');
+        else if (pg.result.type === 'u') fxShow('Ù!', 'u');
+      }
+    }
+  }
+  function fxReset() { fxState = { tlCuts: 0, phEats: 0, endFor: null, trangFor: null }; }
+  function chatAdd(name, text, mine) {
+    chatLog.push({ name: name, text: text, mine: mine });
+    if (chatLog.length > 60) chatLog.shift();
+    renderChat();
+  }
+  function renderChat() {
+    var list = $('chatList');
+    if (!list) return;
+    list.innerHTML = chatLog.map(function (m) {
+      return '<li' + (m.mine ? ' class="mine"' : '') + '><b>' + esc(m.name) + ':</b> ' + esc(m.text) + '</li>';
+    }).join('');
+    list.scrollTop = list.scrollHeight;
+  }
+  var bubbles = {};
+  function bubbleHostId(seat) {
+    var pre = curGame === 'phom' ? 'ph' : 'tl';
+    if (seat === 0) return pre + 'Me';
+    return pre + 'Opp' + (seat === 2 ? 'Top' : seat === 1 ? 'Left' : 'Right');
+  }
+  var REACTS = [
+    { k: 'slap', icon: '👋', stamp: 'BỐP!', cls: 'slap' },
+    { k: 'hammer', icon: '🔨', stamp: 'KENG!', cls: 'hammer' },
+    { k: 'egg', icon: '🥚', stamp: 'BỤP!', cls: 'egg' },
+    { k: 'kiss', icon: '💋', stamp: 'CHỤT!', cls: 'kiss' }
+  ];
+  var reactOpen = null, reactFx = null, reactTO = null;
+  function renderBubbles() {
+    var now = Date.now();
+    [0, 1, 2, 3].forEach(function (seat) {
+      var host = $(bubbleHostId(seat));
+      if (!host) return;
+      host.querySelectorAll('.bubble, .react-menu').forEach(function (n) { n.remove(); });
+      var b = bubbles[seat];
+      if (b && b.until > now) {
+        var el = document.createElement('div');
+        el.className = 'bubble';
+        el.textContent = b.text;
+        host.appendChild(el);
+      }
+      var av = host.querySelector('.tl-fb');
+      if (av) {
+        av.querySelectorAll('.react-hit, .react-stamp').forEach(function (n) { n.remove(); });
+        av.classList.remove('react-shake');
+        if (reactFx && reactFx.seat === seat) {
+          var r = REACTS.filter(function (x) { return x.k === reactFx.kind; })[0];
+          var hit = document.createElement('div');
+          hit.className = 'react-hit ' + r.cls; hit.textContent = r.icon;
+          var st = document.createElement('div');
+          st.className = 'react-stamp'; st.textContent = r.stamp;
+          av.appendChild(hit); av.appendChild(st);
+          av.classList.add('react-shake');
+        }
+      }
+      if (reactOpen === seat && seat !== 0) {
+        var m = document.createElement('div');
+        m.className = 'react-menu';
+        m.innerHTML = REACTS.map(function (x) {
+          return '<button type="button" data-react="' + x.k + '" data-seat="' + seat + '" aria-label="' + x.stamp + '">' + x.icon + '</button>';
+        }).join('');
+        (av || host).appendChild(m);
+      }
+    });
+  }
+  function showReact(seat, kind) {
+    reactOpen = null;
+    reactFx = { seat: seat, kind: kind };
+    renderBubbles();
+    clearTimeout(reactTO);
+    reactTO = setTimeout(function () { reactFx = null; renderBubbles(); }, 1000);
+  }
+  function doReact(seat, kind) {
+    if (online && online.view) { reactOpen = null; onlineAct({ type: 'react', to: (seat + online.view.real) % 4, kind: kind }); renderBubbles(); return; }
+    showReact(seat, kind);
+  }
+  $('gamePane').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-react]');
+    if (btn) { doReact(+btn.getAttribute('data-seat'), btn.getAttribute('data-react')); return; }
+    var av = e.target.closest('[id^="tlOpp"] .tl-fb, [id^="phOpp"] .tl-fb');
+    if (av) {
+      var host = av.closest('[id^="tlOpp"], [id^="phOpp"]');
+      var seat = host.id.indexOf('Top') >= 0 ? 2 : host.id.indexOf('Left') >= 0 ? 1 : 3;
+      reactOpen = reactOpen === seat ? null : seat;
+      renderBubbles();
+      return;
+    }
+    if (reactOpen !== null && !e.target.closest('.react-menu')) { reactOpen = null; renderBubbles(); }
+  });
+  function showBubble(seat, text) {
+    bubbles[seat] = { text: text, until: Date.now() + 4000 };
+    renderBubbles();
+    setTimeout(function () {
+      if (bubbles[seat] && bubbles[seat].until <= Date.now()) { delete bubbles[seat]; renderBubbles(); }
+    }, 4100);
+  }
+  function botSay(seat, text) {
+    var name = tlOrder[seat] ? tlOrder[seat].name : 'Máy';
+    chatTimers.push(setTimeout(function () { chatAdd(name, text, false); showBubble(seat, text); }, 500 + Math.random() * 900));
+  }
+  function chatClear() {
+    chatTimers.forEach(clearTimeout); chatTimers = []; chatLog = []; bubbles = {}; reactOpen = null; reactFx = null; renderChat(); renderBubbles();
+    $('chatPanel').hidden = true;
+  }
+  $('chatBtn').addEventListener('click', function () {
+    var panel = $('chatPanel');
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) { renderChat(); $('chatInput').focus(); }
+  });
+  $('chatClose').addEventListener('click', function () { $('chatPanel').hidden = true; });
+  $('chatForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var text = $('chatInput').value.trim();
+    if (!text) return;
+    $('chatInput').value = '';
+    if (online) { onlineAct({ type: 'chat', text: text }); return; }
+    chatAdd(tlOrder[0] ? tlOrder[0].name : 'Bạn', text, true);
+    showBubble(0, text);
+    var seat = 1 + Math.floor(Math.random() * 3);
+    chatTimers.push(setTimeout(function () {
+      botSay(seat, BOT_LINES[Math.floor(Math.random() * BOT_LINES.length)]);
+    }, 900));
+  });
+
+  // ===== Chơi online: phòng 4 người qua máy chủ =====
+  var ONLINE_KEY = 'forteen-online', online = null, onlineES = null;
+  function onlineSaved() { try { return JSON.parse(localStorage.getItem(ONLINE_KEY)) || null; } catch (e) { return null; } }
+  function onlineSave(v) { try { if (v) localStorage.setItem(ONLINE_KEY, JSON.stringify(v)); else localStorage.removeItem(ONLINE_KEY); } catch (e) {} }
+  function onlineAvailable() { return location.protocol === 'http:' || location.protocol === 'https:'; }
+  function postJSON(url, body) {
+    return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body || {}) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, data: j }; }); });
+  }
+  function onlineFail(d) { toast((d && d.error) || 'Không kết nối được máy chủ, thử lại nhé.'); }
+  function onlineCreate() {
+    postJSON('/api/room', {}).then(function (r) { if (r.ok) onlineJoin(r.data.code); else onlineFail(r.data); })
+      .catch(function () { onlineFail(null); });
+  }
+  function onlineJoin(code) {
+    code = String(code || '').trim().toUpperCase();
+    var me = meGet();
+    if (!me) { toast('Hãy tạo nhân vật trước.'); return; }
+    var saved = onlineSaved(), tok = saved && saved.code === code ? saved.token : null;
+    postJSON('/api/join', { code: code, token: tok, name: me.name, av: me.av }).then(function (r) {
+      if (!r.ok) { if (tok) onlineSave(null); onlineFail(r.data); return; }
+      onlineSave({ code: code, token: r.data.token });
+      onlineConnect(code, r.data.token);
+    }).catch(function () { onlineFail(null); });
+  }
+  function onlineConnect(code, token) {
+    onlineDisconnect();
+    online = { code: code, token: token, view: null, lastRound: -1 };
+    try { history.replaceState(null, '', '?room=' + code); } catch (e) {}
+    onlineES = new EventSource('/api/stream?code=' + encodeURIComponent(code) + '&token=' + encodeURIComponent(token));
+    onlineES.addEventListener('view', function (e) { applyView(JSON.parse(e.data)); });
+    onlineES.addEventListener('chat', function (e) { onChat(JSON.parse(e.data)); });
+    onlineES.addEventListener('react', function (e) { onReact(JSON.parse(e.data)); });
+    renderOnlineBox();
+  }
+  function onlineDisconnect() { if (onlineES) { onlineES.close(); onlineES = null; } }
+  function onlineAct(msg) {
+    if (!online) return;
+    msg.code = online.code; msg.token = online.token;
+    postJSON('/api/act', msg).then(function (r) { if (!r.ok || r.data.error) toast((r.data && r.data.error) || 'Lỗi'); })
+      .catch(function () { toast('Mất kết nối máy chủ, thử lại nhé.'); });
+  }
+  function onlineLeave(forget) {
+    if (!online) return;
+    var v = online;
+    if (forget) { postJSON('/api/act', { code: v.code, token: v.token, type: 'leave' }).catch(function () {}); onlineSave(null); }
+    onlineDisconnect(); online = null;
+    try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  }
+  function onlineSetup() {
+    return tlOrder.map(function (s) {
+      var p = state.players.filter(function (x) { return x.name === s.name; })[0];
+      return { name: s.name, av: s.av, pid: p ? p.id : null };
+    });
+  }
+  function applyView(v) {
+    if (!online) return;
+    online.view = v;
+    tlOrder = v.seats.map(function (s, i) {
+      return s ? { name: s.name, av: (s.av && s.av.b) ? s.av : defAv(i), pid: null } : { name: 'Trống', av: defAv(i), pid: null };
+    });
+    if (online.lastRound !== v.roundNo) { online.lastRound = v.roundNo; tlRecorded = false; tlSel = {}; tlHintList = null; }
+    tg = v.tg || null;
+    if (v.mode) tlGameMode = v.mode;
+    if (v.roundNo) tlRoundNo = v.roundNo;
+    if (v.rdy) {
+      rdy.on = true; rdy.ready = v.rdy.ready; rdy.deadline = Date.now() + v.rdy.left;
+      if (!rdy.tick) rdy.tick = setInterval(readyTick, 1000);
+    } else {
+      rdy.on = false; rdy.ready = [];
+      if (rdy.tick) { clearInterval(rdy.tick); rdy.tick = null; }
+    }
+    if (tg && tg.over && !tlRecorded) tlRecord();
+    refreshGameView();
+    onlineSchedule();
+  }
+  function onlineSchedule() {
+    clearTimeout(tlTimer); tlTimer = null;
+    tlClearClocks();
+    if (!online || !online.view || !tg || tg.over || tg.turn === null) return;
+    tlDeadline = Date.now() + (online.view.left || 0);
+    tlCountTimer = setInterval(tlTick, 1000);
+    tlTick();
+  }
+  function onChat(m) {
+    if (!online || !online.view) return;
+    chatAdd(m.name, m.text, m.seat === online.view.real);
+    showBubble((m.seat - online.view.real + 4) % 4, m.text);
+  }
+  function onReact(m) {
+    if (!online || !online.view) return;
+    showReact((m.to - online.view.real + 4) % 4, m.kind);
+  }
+  function renderOnlineBox() {
+    var box = $('onlineBox');
+    if (!box) return;
+    var show = !!meGet() && curGame !== 'phom' && onlineAvailable() && !tg;
+    if (!show) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    if (!online) {
+      var saved = onlineSaved();
+      var q = new URLSearchParams(location.search).get('room') || (saved ? saved.code : '');
+      box.innerHTML = '<div class="online-title">Chơi online (4 người, mỗi người một máy)</div>' +
+        '<div class="online-row"><button class="btn small primary" id="onCreate" type="button">Tạo phòng mới</button></div>' +
+        '<div class="online-row"><input id="onCode" class="tl-name" maxlength="6" placeholder="Mã phòng" value="' + esc(q) + '" aria-label="Mã phòng"><button class="btn small" id="onJoin" type="button">Vào phòng</button></div>' +
+        (saved ? '<div class="online-row"><button class="btn small" id="onResume" type="button">Vào lại phòng ' + esc(saved.code) + '</button><button class="btn small" id="onForget" type="button">Quên phòng</button></div>' : '');
+      return;
+    }
+    var v = online.view;
+    if (!v) { box.innerHTML = '<div class="online-title">Đang vào phòng ' + esc(online.code) + '...</div>'; return; }
+    var mine = v.seats[0];
+    box.innerHTML = '<div class="online-title">Phòng ' + esc(online.code) + ' · ' + v.seats.filter(Boolean).length + '/4 người</div>' +
+      '<ul class="online-seats">' + v.seats.map(function (s) {
+        return '<li>' + (s ? esc(s.name) + (s.ready ? ' · sẵn sàng' : ' · chưa sẵn sàng') : 'Ghế trống') + '</li>';
+      }).join('') + '</ul>' +
+      '<div class="hint-text">Gửi link này cho bạn bè: ' + esc(location.origin + '/?room=' + online.code) + '</div>' +
+      '<div class="online-row"><button class="btn small primary" id="onReady" type="button">' + (mine && mine.ready ? 'Hủy sẵn sàng' : 'Sẵn sàng') + '</button><button class="btn small" id="onLeaveRoom" type="button">Rời phòng</button></div>';
+  }
+  $('onlineBox').addEventListener('click', function (e) {
+    var id = e.target.id;
+    if (id === 'onCreate') onlineCreate();
+    else if (id === 'onJoin') onlineJoin($('onCode').value);
+    else if (id === 'onResume') { var sv = onlineSaved(); if (sv) onlineJoin(sv.code); }
+    else if (id === 'onForget') { onlineSave(null); renderOnlineBox(); }
+    else if (id === 'onReady') { var mm = online && online.view && online.view.seats[0]; onlineAct({ type: 'ready', on: !(mm && mm.ready) }); }
+    else if (id === 'onLeaveRoom') { onlineLeave(true); renderOnlineBox(); }
+  });
+  // Cửa sổ kiểm thử (chỉ đọc + gửi hành động online)
+  window.__forteen = { onlineAct: onlineAct, TL: TL, get tg() { return tg; }, get rdy() { return rdy; }, get roundNo() { return tlRoundNo; }, get online() { return online; } };
+
+  function tlStartGame() {
+    if (online) return;
+    readyCancel(); fxReset();
+    if (curGame === 'phom') { phStart(); return; }
+    var setup = tlFixSetup();
+    tlOrder = setup.map(function (s) { return { name: s.name || 'Ghế', av: JSON.parse(JSON.stringify(s.av)), pid: s.pid }; });
+    tg = TL.newGame(tlGameMode, tlOrder.map(function (s) { return s.name; }));
+    tlSel = {}; tlFlash = ''; tlRecorded = false;
+    tlRoundNo++; tlHintList = null; tlTrickKey = ''; tlOpen = true;
+    renderGame(); tlSchedule();
+  }
+
+  function renderGame() {
+    if (!$('gamePane')) return;
+    renderTlSetup();
+    $('tlStart').textContent = tg ? 'Chia ván mới' : 'Chia bài';
+    var gbs = document.querySelectorAll('[data-tlgm]');
+    for (var k = 0; k < gbs.length; k++) {
+      var on = gbs[k].getAttribute('data-tlgm') === tlGameMode;
+      gbs[k].classList.toggle('on', on);
+      gbs[k].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    $('tlBoard').hidden = !tg;
+    $('tlResult').hidden = !(tg && tg.over);
+    if (curGame === 'tienlen') $('gamePane').classList.toggle('stage', !!tg);
+    if (!tg) { $('tlResult').innerHTML = ''; return; }
+    $('tlRoundLbl').textContent = 'Ván ' + tlRoundNo + ' · ' + (tlGameMode === 'dem' ? 'Đếm lá' : 'Đánh đến hết');
+    $('tlSort').textContent = 'Xếp: ' + (tlSortMode === 'suit' ? 'chất' : 'số');
+
+    var myTurn = !tg.over && tg.turn === 0;
+    $('tlOppTop').innerHTML = tlOppHTML(2);
+    $('tlOppLeft').innerHTML = tlOppHTML(1);
+    $('tlOppRight').innerHTML = tlOppHTML(3);
+    $('tlMe').innerHTML = '<div class="tl-who' + (myTurn ? ' turn' : '') + '">' + fbHTML(tlOrder[0]) +
+      '<div class="tl-nm">' + esc(tlOrder[0].name) + '</div></div>' +
+      '<span class="tl-count">' + tg.players[0].hand.length + '</span>';
+
+    if (tg.top) {
+      $('tlLabel').textContent = tg.players[tg.top.seat].name + ' đánh ' + tlDescribe(tg.top.combo);
+      var tkey = tg.top.seat + ':' + tg.top.combo.cards.map(function (c) { return c.id; }).join(',');
+      if (tkey !== tlTrickKey) {
+        tlTrickKey = tkey;
+        $('tlTrick').innerHTML = tg.top.combo.cards.map(function (c, i) { return tlCardHTML(c, '', tlPileAttrs(c, i, tg.top.seat)); }).join('');
+      }
+    } else if (!tg.over) {
+      $('tlLabel').textContent = 'Bàn trống. ' + tg.players[tg.turn].name + ' mở bàn';
+      $('tlTrick').innerHTML = '';
+      tlTrickKey = '';
+    } else {
+      $('tlLabel').textContent = tg.trang !== undefined && tg.trang !== null ? 'Thắng trắng! ' + tg.players[tg.trang].name + ' có tứ quý 2' : 'Ván xong';
+      $('tlTrick').innerHTML = '';
+    }
+
+    $('tlHand').innerHTML = sortHand(tg.players[0].hand).map(function (c) {
+      var on = !!tlSel[c.id];
+      return tlCardHTML(c, on ? 'on' : '', myTurn ? 'data-tlid="' + c.id + '" aria-pressed="' + on + '"' : 'disabled');
+    }).join('');
+
+    // Thứ tự chồng như bài thật: lá bên phải nằm trên lá bên trái; lá được chọn chỉ nhô lên
+    var hc = $('tlHand').children;
+    for (var k = 0; k < hc.length; k++) hc[k].style.zIndex = k;
+    var cards = tg.players[0].hand.filter(function (c) { return tlSel[c.id]; });
+    var combo = cards.length ? TL.detect(cards) : null;
+    var topC = tg.top ? tg.top.combo : null;
+    var canPlay = myTurn && !!combo && TL.beats(combo, topC) && (!tg.first || tlHas3(cards));
+    $('tlPlay').disabled = !canPlay;
+    $('tlPass').disabled = !(myTurn && tg.top);
+    $('tlHint').disabled = !myTurn;
+    var msg;
+    if (tg.over) msg = 'Ván xong. Xem kết quả bên dưới.';
+    else if (!myTurn) msg = tg.players[tg.turn].name + ' đang đánh...';
+    else if (!cards.length) msg = tg.top ? 'Chọn bộ đè bàn, hoặc bỏ lượt.' : 'Bạn mở bàn, chọn một bộ để đánh.';
+    else if (!combo) msg = 'Bộ này chưa hợp lệ.';
+    else if (tg.first && !tlHas3(cards)) msg = 'Ván đầu phải có 3 bích ♠.';
+    else if (!TL.beats(combo, topC)) msg = 'Bộ này không đè được bàn.';
+    else msg = 'Đánh được rồi.';
+    $('tlStatus').textContent = tlFlash || msg;
+    fxTick();
+
+    if (tg.over) {
+      var st = TL.settle(tg, state.rates);
+      $('tlResult').innerHTML = '<h2>Kết quả: ' + esc(tg.players[st.winner].name) + ' nhất</h2>' +
+        '<ul>' + tg.finished.map(function (seat, i) { return '<li>' + TL.PLACE[i] + ': ' + esc(tg.players[seat].name) + '</li>'; }).join('') + '</ul>' +
+        '<p><b>Tiền cộng trừ</b></p><ul>' + tg.players.map(function (p, i) {
+          var v = st.nets[i];
+          return '<li class="' + (v > 0 ? 'tl-pos' : v < 0 ? 'tl-neg' : '') + '">' + esc(p.name) + ': ' + (v > 0 ? '+' : '') + v + 'k</li>';
+        }).join('') + '</ul>' +
+        (st.lines.length ? '<ul>' + st.lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' : '') +
+        '<div class="tl-row tl-actions"><button class="btn primary" id="tlRecord" type="button"' + (tlRecorded ? ' disabled' : '') + '>' +
+        (tlRecorded ? 'Đã ghi vào sổ' : 'Ghi vào sổ') + '</button></div>';
+    } else {
+      $('tlResult').innerHTML = '';
+    }
+  }
+
+  function tlRecord() {
+    if (!tg || !tg.over) return false;
+    if (tlRecorded) return true;
+    var setup = online ? onlineSetup() : tlFixSetup();
+    var missing = setup.filter(function (s) { return !s.pid || !tlPlayerById(s.pid); }).length;
+    if (state.players.length + missing > 8) { toast('Sổ đã đủ 8 người, hãy bớt người rồi ghi lại.'); return false; }
+    var st = TL.settle(tg, state.rates), scores = {};
+    setup.forEach(function (s, i) {
+      if (!s.pid || !tlPlayerById(s.pid)) {
+        s.pid = uid();
+        state.players.push({ id: s.pid, name: s.name || TL_NAMES[i], av: JSON.parse(JSON.stringify(s.av)) });
+      }
+      scores[s.pid] = (scores[s.pid] || 0) + (st.nets[i] || 0);
+    });
+    if (state.sample) { state.rounds = []; state.sample = false; }
+    state.rounds.push({ id: uid(), scores: scores, note: tlGameMode === 'dem' ? 'Tiến lên đếm lá' : 'Tiến lên đánh hết' });
+    tlRecorded = true;
+    save(); renderAll();
+    toast('Đã ghi ván Tiến lên vào sổ 📒');
+    return true;
+  }
+
+  var RDY_LIMIT = 10000, rdy = { on: false, ready: [], deadline: 0, timer: null, tick: null };
+  // Ghế người thật: hiện chỉ ghế 0 (bạn). Khi có server, ghế của người khác cũng là người thật.
+  function rdyIsHuman(i) { return i === 0; }
+  function refreshGameView() { if (curGame === 'phom') phRender(); else renderGame(); renderReady(); }
+  function readyBegin() {
+    if (rdy.on) return;
+    var ok = curGame === 'phom' ? phRecord() : tlRecord();
+    if (!ok) return; // không ghi được vào sổ thì không tự chia ván mới, tránh mất kết quả
+    rdy.on = true;
+    rdy.ready = [0, 1, 2, 3].map(function (i) { return !rdyIsHuman(i); });
+    rdy.deadline = Date.now() + RDY_LIMIT;
+    rdy.timer = setTimeout(readyDeal, RDY_LIMIT);
+    rdy.tick = setInterval(readyTick, 1000);
+    refreshGameView();
+  }
+  function readyTick() {
+    var el = $('readyCount');
+    if (el) el.textContent = Math.max(0, Math.ceil((rdy.deadline - Date.now()) / 1000));
+  }
+  function readyCancel() {
+    clearTimeout(rdy.timer); clearInterval(rdy.tick);
+    rdy.timer = null; rdy.tick = null; rdy.on = false; rdy.ready = [];
+    renderReady();
+  }
+  function readyDeal() {
+    readyCancel();
+    tlStartGame();
+  }
+  function readyPress() {
+    if (online && curGame !== 'phom') { onlineAct({ type: 'ready' }); return; }
+    if (!rdy.on) return;
+    rdy.ready[0] = true;
+    if (rdy.ready.every(Boolean)) readyDeal(); else renderReady();
+  }
+  // Tóm tắt kết quả ván vừa xong, hiển thị ngay giữa bàn
+  function gameSummaryHTML() {
+    var st, head, names;
+    if (curGame === 'phom') {
+      if (!pg || !pg.over) return '';
+      st = phomSettle(pg, state.rates);
+      head = pg.result.type === 'uden' ? 'Ù đền!' : pg.result.type === 'u' ? 'Ù!' : 'Hết ván';
+      names = pg.players;
+    } else {
+      if (!tg || !tg.over) return '';
+      st = TL.settle(tg, state.rates);
+      head = 'Kết quả: ' + tg.players[st.winner].name + ' nhất';
+      names = tg.players;
+    }
+    return '<p><b>' + esc(head) + '</b></p><p class="ready-sum">' + names.map(function (p, i) {
+      var v = st.nets[i];
+      return esc(p.name) + ' ' + (v > 0 ? '+' : '') + v + 'k';
+    }).join(' · ') + '</p>';
+  }
+  function readyHTML() {
+    var setup = online && curGame !== 'phom' ? tlOrder : tlFixSetup();
+    var left = Math.max(0, Math.ceil((rdy.deadline - Date.now()) / 1000));
+    return '<div class="ready-box">' + gameSummaryHTML() + '<p><b>Ván mới sẽ chia sau <span id="readyCount">' + left + '</span> giây</b></p>' +
+      '<ul>' + setup.map(function (s, i) {
+        return '<li>' + esc(s.name || 'Ghế') + ': ' + (rdy.ready[i] ? 'sẵn sàng' : 'chưa sẵn sàng') + '</li>';
+      }).join('') + '</ul>' +
+      '<div class="tl-row tl-actions"><button class="btn primary" id="readyBtn" type="button"' + (rdy.ready[0] ? ' disabled' : '') + '>Sẵn sàng</button></div></div>';
+  }
+  function renderReady() {
+    var on = curGame === 'phom';
+    var host = $(on ? 'readyMidPh' : 'readyMidTl'), other = $(on ? 'readyMidTl' : 'readyMidPh');
+    if (other) { other.hidden = true; other.innerHTML = ''; }
+    if (!host) return;
+    host.hidden = !rdy.on;
+    host.innerHTML = rdy.on ? readyHTML() : '';
+  }
+  var TL_LIMIT = 120000, tlDeadline = 0, tlTO = null, tlCountTimer = null;
+  function tlTick() {
+    var el = $('tlClock');
+    if (!el) return;
+    var left = Math.max(0, Math.ceil((tlDeadline - Date.now()) / 1000));
+    el.hidden = false;
+    el.textContent = '⏱ ' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+  }
+  function tlClearClocks() {
+    clearTimeout(tlTO); tlTO = null;
+    clearInterval(tlCountTimer); tlCountTimer = null;
+    if ($('tlClock')) $('tlClock').hidden = true;
+  }
+  function tlTimeout() {
+    tlTO = null;
+    if (!tg || tg.over || tg.turn !== 0) return;
+    var ids = TL.botMove(tg, 0);
+    var err = ids ? TL.play(tg, 0, ids) : TL.pass(tg, 0);
+    if (err) err = TL.pass(tg, 0);
+    tlSel = {};
+    tlFlash = 'Hết 2 phút, máy tự đánh thay bạn.';
+    renderGame(); tlSchedule();
+  }
+  function tlSchedule() {
+    if (online && curGame !== 'phom') { onlineSchedule(); return; }
+    clearTimeout(tlTimer); tlTimer = null;
+    tlClearClocks();
+    if (tg && tg.over) { readyBegin(); return; }
+    if (!tg || tg.over || tg.turn === null) return;
+    if (tg.turn !== 0) { tlTimer = setTimeout(tlBotTurn, 700); return; }
+    tlDeadline = Date.now() + TL_LIMIT;
+    tlTO = setTimeout(tlTimeout, TL_LIMIT);
+    tlCountTimer = setInterval(tlTick, 1000);
+    tlTick();
+  }
+  function tlBotTurn() {
+    tlTimer = null;
+    if (!tg || tg.over || tg.turn === 0 || tg.turn === null) return;
+    var s = tg.turn, ids = TL.botMove(tg, s);
+    var err = ids ? TL.play(tg, s, ids) : TL.pass(tg, s);
+    if (err) { tlFlash = err; renderGame(); return; }
+    tlFlash = '';
+    renderGame(); tlSchedule();
+  }
+
+  $('tlSetup').addEventListener('click', function (e) {
+    var id = e.target.id;
+    if (id === 'meRand') { var n = $('meName'); meDraft = { name: n ? n.value : '', av: randomAv() }; renderTlSetup(); }
+    else if (id === 'meCreate') {
+      var nm = ($('meName').value || '').trim() || 'Bạn';
+      meSet({ name: nm, av: JSON.parse(JSON.stringify(meDraft.av)) }); meDraft = null;
+      save(); renderTlSetup();
+    }
+    else if (id === 'meEdit') { var cur = meGet(); meDraft = { name: cur.name, av: JSON.parse(JSON.stringify(cur.av)) }; meSet(null); renderTlSetup(); }
+  });
+  $('tlStart').addEventListener('click', tlStartGame);
+  document.querySelectorAll('[data-tlgm]').forEach(function (b) {
+    b.addEventListener('click', function () { tlGameMode = b.getAttribute('data-tlgm'); renderGame(); });
+  });
+  $('tlHand').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tlid]');
+    if (!b || !tg || tg.over || tg.turn !== 0) return;
+    var id = +b.getAttribute('data-tlid');
+    tlSel[id] = !tlSel[id]; tlFlash = '';
+    renderGame();
+  });
+  $('tlHint').addEventListener('click', function () {
+    if (!tg || tg.over || tg.turn !== 0) return;
+    var key = tg.players[0].hand.map(function (c) { return c.id; }).join(',') + '|' + (tg.top ? tg.top.combo.cards.map(function (c) { return c.id; }).join(',') : '');
+    if (key !== tlHintKey || !tlHintList) {
+      tlHintList = TL.candidates(tg.players[0].hand, tg.top ? tg.top.combo : null, tg.first);
+      tlHintIdx = 0; tlHintKey = key;
+    }
+    if (!tlHintList.length) { tlSel = {}; tlFlash = 'Không đè được, bạn nên bỏ lượt.'; renderGame(); return; }
+    var n = tlHintList.length, c = tlHintList[tlHintIdx % n];
+    tlHintIdx++;
+    tlSel = {};
+    c.cards.forEach(function (x) { tlSel[x.id] = true; });
+    tlFlash = 'Gợi ý ' + ((tlHintIdx - 1) % n + 1) + '/' + n + ': ' + tlDescribe(c);
+    renderGame();
+  });
+  $('tlPlay').addEventListener('click', function () {
+    if (!tg) return;
+    if (online) { onlineAct({ type: 'play', ids: tg.players[0].hand.filter(function (c) { return tlSel[c.id]; }).map(function (c) { return c.id; }) }); return; }
+    var ids = tg.players[0].hand.filter(function (c) { return tlSel[c.id]; }).map(function (c) { return c.id; });
+    var err = TL.play(tg, 0, ids);
+    if (err) { tlFlash = err; renderGame(); return; }
+    tlSel = {}; tlFlash = '';
+    renderGame(); tlSchedule();
+  });
+  $('tlPass').addEventListener('click', function () {
+    if (!tg) return;
+    if (online) { onlineAct({ type: 'pass' }); return; }
+    var err = TL.pass(tg, 0);
+    if (err) { tlFlash = err; renderGame(); return; }
+    tlSel = {}; tlFlash = '';
+    renderGame(); tlSchedule();
+  });
+  // ===== Phỏm miền Nam (bàn local, 3 ghế máy) =====
+  var curGame = 'tienlen';
+  var pg = null, phSel = {}, phSortMode = 'rank', phRecorded = false, phTimer = null, phTO = null, phTick = null, phDeadline = 0, phFlash = '';
+  var PH_RANKLBL = { nhat: 'Nhất', nhi: 'Nhì', ba: 'Ba', bet: 'Bét', chay: 'Cháy', u: 'Ù' };
+  function phSelIds() { return Object.keys(phSel).filter(function (k) { return phSel[k]; }).map(Number); }
+  function phSortHand(h) {
+    var SR = [1, 2, 3, 0];
+    return h.slice().sort(function (a, b) {
+      if (phSortMode === 'suit') return (a.s - b.s) || (a.r - b.r);
+      return (a.r * 4 + SR[a.s]) - (b.r * 4 + SR[b.s]);
+    });
+  }
+  function phMeld(group, attr, cls) { return '<span class="ph-meld' + (cls ? ' ' + cls : '') + '"' + (attr || '') + '>' + group.map(function (c) { return Phom.label(c); }).join(' ') + '</span>'; }
+  function phOppHTML(i) {
+    var e = pg.players[i], s = tlOrder[i];
+    var turn = !pg.over && pg.turn === i;
+    return '<div class="tl-who' + (turn ? ' turn' : '') + '">' + fbHTML(s) + '<div class="tl-nm">' + esc(s.name) + '</div></div>' +
+      '<span class="tl-stack"><i></i><i></i><i></i><b>' + e.hand.length + '</b></span>' +
+      '<div class="ph-melds-opp">' + e.laid.map(function (g, gi) {
+        var canSend = !pg.over && pg.turn === 0 && pg.phase === 'discard' && phSelIds().length === 1 && i !== 0;
+        return phMeld(g, canSend ? ' data-phsend="' + i + ':' + gi + '"' : '', canSend ? 'send' : '');
+      }).join('') + '</div>';
+  }
+  function phStart() {
+    var setup = tlFixSetup();
+    tlOrder = setup.map(function (s) { return { name: s.name || 'Ghế', av: JSON.parse(JSON.stringify(s.av)), pid: s.pid }; });
+    pg = Phom.newGame(tlOrder.map(function (s) { return s.name; }));
+    phSel = {}; phFlash = ''; phRecorded = false; tlRoundNo++; fxReset();
+    tlOpen = true; phRender(); phSchedule();
+  }
+  function phAct(err) {
+    if (err) { phFlash = err; phRender(); return; }
+    phSel = {}; phFlash = '';
+    phRender(); phSchedule();
+  }
+  function phRender() {
+    if (!$('gamePane')) return;
+    var on = curGame === 'phom';
+    $('gamePane').classList.toggle('phom-mode', on);
+    if (!on) return;
+    $('phBoard').hidden = !pg;
+    $('tlBoard').hidden = true;
+    if (!pg) { $('gamePane').classList.remove('stage'); return; }
+    $('gamePane').classList.add('stage');
+    $('tlRoundLbl').textContent = 'Ván ' + tlRoundNo + ' · Phỏm · Vòng ' + Math.min(Phom.roundNo(pg), pg.maxRounds) + '/' + pg.maxRounds;
+    var me = pg.players[0], myTurn = !pg.over && pg.turn === 0;
+    $('phOppTop').innerHTML = phOppHTML(2);
+    $('phOppLeft').innerHTML = phOppHTML(1);
+    $('phOppRight').innerHTML = phOppHTML(3);
+    $('phMe').innerHTML = '<div class="tl-who' + (myTurn ? ' turn' : '') + '">' + fbHTML(tlOrder[0]) +
+      '<div class="tl-nm">' + esc(tlOrder[0].name) + '</div></div><span class="tl-count">' + me.hand.length + '</span>';
+    $('phStock').innerHTML = pg.stock.length
+      ? '<span class="tl-stack"><i></i><i></i><i></i><b>' + pg.stock.length + '</b></span>'
+      : '<span class="tl-out">Hết bài bốc</span>';
+    var top = pg.discard.length ? pg.discard[pg.discard.length - 1] : null;
+    $('phDiscard').innerHTML = top ? tlCardHTML(top, '', 'disabled', true) : '';
+    $('phLabel').textContent = pg.groupOpen
+      ? pg.players[pg.groupOpen.by].name + ' vừa đánh cả bộ 3 lá'
+      : (top ? 'Lá trên bàn: ' + Phom.label(top) : 'Bàn trống');
+    var ids = phSelIds(), selN = ids.length;
+    $('phHand').innerHTML = phSortHand(me.hand).map(function (c) {
+      var o = !!phSel[c.id];
+      return tlCardHTML(c, o ? 'on' : '', myTurn ? 'data-phid="' + c.id + '" aria-pressed="' + o + '"' : 'disabled', true);
+    }).join('');
+    $('phMelds').innerHTML = me.laid.map(function (g) { return phMeld(g); }).join('');
+    var canDraw = myTurn && pg.phase === 'draw';
+    var canEat = canDraw && (pg.groupOpen
+      ? Phom.nextSeat(pg, pg.groupOpen.by) === 0
+      : (!!top && Phom.nextSeat(pg, pg.lastDiscardSeat) === 0));
+    var canPlay = myTurn && pg.phase === 'discard';
+    $('phDraw').disabled = !canDraw;
+    $('phEat').disabled = !canEat || (!pg.groupOpen && selN !== 2);
+    var selCards = me.hand.filter(function (c) { return phSel[c.id]; });
+    $('phLay').disabled = !(canPlay && selN >= 3 && Phom.isMeld(selCards));
+    $('phMeld').disabled = !(canPlay && selN >= 3);
+    $('phPlay').disabled = !(canPlay && selN === 1);
+    $('phU').disabled = !(myTurn && Phom.canWin(me.hand));
+    $('phSort').textContent = 'Xếp: ' + (phSortMode === 'suit' ? 'chất' : 'số');
+    var msg;
+    if (pg.over) msg = 'Ván xong. Xem kết quả bên dưới.';
+    else if (!myTurn) msg = pg.players[pg.turn].name + ' đang đánh...';
+    else if (phFlash) msg = phFlash;
+    else if (pg.phase === 'draw') msg = pg.groupOpen ? 'Ăn cả bộ vừa đánh, hoặc bốc bài.' : 'Bốc bài, hoặc chọn 2 lá trong tay để ăn lá trên bàn.';
+    else if (selN === 1 && me.laid.length && pg.players.some(function (p, i) { return i !== 0 && p.laid.length; })) msg = 'Bấm vào một phỏm đã hạ của người khác để gửi lá này, hoặc đánh lá này.';
+    else msg = 'Chọn 3+ lá tạo phỏm rồi bấm Hạ bộ. Chọn 1 lá để đánh.';
+    $('phStatus').textContent = msg;
+    fxTick();
+    if (pg.over) renderPhResult();
+    else { $('tlResult').hidden = true; $('tlResult').innerHTML = ''; }
+  }
+  function phomSettle(g, rates) {
+    var nets = g.players.map(function () { return 0; }), r = g.result, lines = [];
+    var name = function (seat) { return g.players[seat].name; };
+    if (r.type === 'uden') {
+      nets[r.uden] -= rates.uden; nets[r.winner] += rates.uden;
+      lines.push(name(r.uden) + ' ù đền, trả ' + name(r.winner) + ' ' + rates.uden + 'k');
+    } else if (r.type === 'u') {
+      g.players.forEach(function (p) {
+        if (p.seat === r.winner) return;
+        nets[p.seat] -= rates.u; nets[r.winner] += rates.u;
+      });
+      lines.push(name(r.winner) + ' ù, mỗi người trả ' + rates.u + 'k');
+    } else {
+      var w = r.winner;
+      g.players.forEach(function (p) {
+        if (p.seat === w) return;
+        var rk = r.ranks[p.seat], a = rates[rk] || 0;
+        nets[p.seat] -= a; nets[w] += a;
+        lines.push(name(p.seat) + ' ' + PH_RANKLBL[rk] + ', trả ' + name(w) + ' ' + a + 'k');
+      });
+    }
+    return { nets: nets, lines: lines };
+  }
+  function renderPhResult() {
+    var st = phomSettle(pg, state.rates), r = pg.result;
+    var head = r.type === 'uden' ? 'Ù đền!' : r.type === 'u' ? 'Ù!' : 'Hết ván';
+    var order = ['nhat', 'nhi', 'ba', 'bet', 'chay', 'u'];
+    var lines = [];
+    if (r.type === 'u' || r.type === 'uden') {
+      lines.push(pg.players[r.winner].name + ' ' + (r.type === 'uden' ? 'ù đền' : 'ù'));
+    } else {
+      order.forEach(function (rk) {
+        Object.keys(r.ranks).forEach(function (seat) {
+          if (r.ranks[seat] === rk) lines.push(PH_RANKLBL[rk] + ': ' + pg.players[seat].name);
+        });
+      });
+    }
+    $('tlResult').hidden = false;
+    $('tlResult').innerHTML = '<h2>' + esc(head) + '</h2>' +
+      '<ul>' + lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' +
+      '<p><b>Tiền cộng trừ</b></p><ul>' + pg.players.map(function (p, i) {
+        var v = st.nets[i];
+        return '<li class="' + (v > 0 ? 'tl-pos' : v < 0 ? 'tl-neg' : '') + '">' + esc(p.name) + ': ' + (v > 0 ? '+' : '') + v + 'k</li>';
+      }).join('') + '</ul>' +
+      (st.lines.length ? '<ul>' + st.lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' : '') +
+      '<div class="tl-row tl-actions"><button class="btn primary" id="tlRecord" type="button"' + (phRecorded ? ' disabled' : '') + '>' +
+      (phRecorded ? 'Đã ghi vào sổ' : 'Ghi vào sổ') + '</button></div>';
+  }
+  function phRecord() {
+    if (!pg || !pg.over) return false;
+    if (phRecorded) return true;
+    var setup = tlFixSetup();
+    var missing = setup.filter(function (s) { return !s.pid || !tlPlayerById(s.pid); }).length;
+    if (state.players.length + missing > 8) { toast('Sổ đã đủ 8 người, hãy bớt người rồi ghi lại.'); return false; }
+    var st = phomSettle(pg, state.rates), scores = {};
+    setup.forEach(function (s, i) {
+      if (!s.pid || !tlPlayerById(s.pid)) {
+        s.pid = uid();
+        state.players.push({ id: s.pid, name: s.name || TL_NAMES[i], av: JSON.parse(JSON.stringify(s.av)) });
+      }
+      scores[s.pid] = (scores[s.pid] || 0) + (st.nets[i] || 0);
+    });
+    if (state.sample) { state.rounds = []; state.sample = false; }
+    state.rounds.push({ id: uid(), scores: scores, note: 'Phỏm miền Nam' });
+    phRecorded = true;
+    save(); renderAll();
+    toast('Đã ghi ván Phỏm vào sổ 📒');
+    phRender();
+    return true;
+  }
+  function phSchedule() {
+    clearTimeout(phTimer); phTimer = null;
+    clearTimeout(phTO); phTO = null;
+    clearInterval(phTick); phTick = null;
+    if (!pg) return;
+    if (pg.over) { $('phClock').hidden = true; readyBegin(); return; }
+    if (pg.turn !== 0) { $('phClock').hidden = true; phTimer = setTimeout(phBot, 800); return; }
+    phDeadline = Date.now() + TL_LIMIT;
+    phTO = setTimeout(phTimeout, TL_LIMIT);
+    phTick = setInterval(phClockTick, 1000);
+    phClockTick();
+  }
+  function phClockTick() {
+    var left = Math.max(0, Math.ceil((phDeadline - Date.now()) / 1000));
+    var el = $('phClock');
+    el.hidden = false;
+    el.textContent = 'Thời gian suy nghĩ: ' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+  }
+  function phBot() {
+    phTimer = null;
+    if (!pg || pg.over || pg.turn === 0) return;
+    Phom.botTurn(pg); phFlash = '';
+    phRender(); phSchedule();
+  }
+  function phTimeout() {
+    phTO = null;
+    if (!pg || pg.over || pg.turn !== 0) return;
+    Phom.botTurn(pg); phSel = {};
+    phFlash = 'Hết 2 phút, máy tự đánh thay bạn.';
+    phRender(); phSchedule();
+  }
+
+  $('tlSort').addEventListener('click', function () {
+    tlSortMode = tlSortMode === 'rank' ? 'suit' : 'rank';
+    renderGame();
+  });
+  $('openTL').addEventListener('click', function () { curGame = 'tienlen'; $('h-game').textContent = 'Bàn Tiến lên'; tlOpen = true; tlShowView(); });
+  $('openPhom').addEventListener('click', function () { curGame = 'phom'; $('h-game').textContent = 'Bàn Phỏm miền Nam'; tlOpen = true; tlShowView(); });
+  $('phHand').addEventListener('click', function (e) {
+    var b = pickHandCard(this, e, 'data-phid');
+    if (!b || !pg || pg.over || pg.turn !== 0) return;
+    var id = +b.getAttribute('data-phid');
+    phSel[id] = !phSel[id]; phFlash = ''; phRender();
+  });
+  $('phDraw').addEventListener('click', function () { phAct(Phom.draw(pg, 0)); });
+  $('phEat').addEventListener('click', function () {
+    var ids = phSelIds();
+    phAct(pg.groupOpen ? Phom.eatGroup(pg, 0) : Phom.eat(pg, 0, ids));
+  });
+  $('phPlay').addEventListener('click', function () {
+    var ids = phSelIds();
+    phAct(ids.length === 1 ? Phom.discard(pg, 0, ids[0]) : 'Chọn đúng 1 lá để đánh.');
+  });
+  $('phMeld').addEventListener('click', function () { phAct(Phom.discardMeld(pg, 0, phSelIds())); });
+  $('phLay').addEventListener('click', function () {
+    var ids = phSelIds();
+    phAct(Phom.lay(pg, 0, [ids]));
+  });
+  $('phBoard').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-phsend]');
+    if (!b || !pg || pg.over || pg.turn !== 0) return;
+    var parts = b.getAttribute('data-phsend').split(':');
+    var ids = phSelIds();
+    if (ids.length !== 1) { phFlash = 'Chọn đúng 1 lá trước khi gửi.'; phRender(); return; }
+    phAct(Phom.sendCard(pg, 0, ids[0], +parts[0], +parts[1]));
+  });
+  $('phU').addEventListener('click', function () { phAct(Phom.declareWin(pg, 0)); });
+  $('phSort').addEventListener('click', function () { phSortMode = phSortMode === 'rank' ? 'suit' : 'rank'; phRender(); });
+  $('gameBack').addEventListener('click', function () { readyCancel(); tlOpen = false; tlShowView(); });
+  $('gamePane').addEventListener('click', function (e) { if (e.target.id === 'readyBtn') readyPress(); });
+  $('tlLeave').addEventListener('click', function () {
+    if (online) onlineLeave(false);
+    readyCancel();
+    tg = null; tlSel = {}; tlFlash = '';
+    pg = null; phSel = {}; phFlash = ''; phSchedule(); chatClear(); fxReset();
+    tlOpen = false; tlSchedule(); tlShowView();
+  });
+  document.querySelectorAll('[data-hub]').forEach(function (b) {
+    b.addEventListener('click', function () { hubShow(b.getAttribute('data-hub')); });
+  });
+  $('tlResult').addEventListener('click', function (e) {
+    if (e.target.id === 'tlRecord') { if (curGame === 'phom') phRecord(); else tlRecord(); }
+  });
+  $('gameRates').addEventListener('input', function (e) {
+    var k = e.target.getAttribute('data-rate');
+    if (!k) return;
+    state.rates[k] = Math.max(0, parseInt(e.target.value, 10) || 0);
+    save(); renderGame();
+  });
+
+  state = load();
+  $('tagline').textContent = pickOne(TAGLINES);
+  renderAll();
+})();
+</script>
