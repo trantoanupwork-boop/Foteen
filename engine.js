@@ -464,11 +464,19 @@ function newGame(mode, names, lead) {
   for (var k = 0; k < per * N; k++) players[k % N].hand.push(deck[k]);
   players.forEach(function (p) { p.hand.sort(function (a, b) { return str(a) - str(b); }); });
   // Ván đầu: người có 3♠ đánh trước. Các ván sau: người thắng ván trước (lead) mở bàn, không cần 3♠.
-  var starter = 0, first = true;
+  var starter = 0, first = true, has3 = false;
   players.forEach(function (p) {
-    if (p.hand.some(function (c) { return c.r === 0 && c.s === 3; })) starter = p.seat;
+    if (p.hand.some(function (c) { return c.r === 0 && c.s === 3; })) { starter = p.seat; has3 = true; }
   });
   if (typeof lead === 'number' && lead >= 0 && lead < N) { starter = lead; first = false; }
+  else if (!has3) {
+    // 2–3 người: 3♠ có thể nằm trong bài dư không chia. Người giữ lá nhỏ nhất trên bàn đánh trước.
+    var low = null;
+    players.forEach(function (p) {
+      p.hand.forEach(function (c) { if (!low || str(c) < low.v) low = { v: str(c), seat: p.seat }; });
+    });
+    starter = low ? low.seat : 0; first = false;
+  }
   var g = { players: players, turn: starter, top: null, passed: {}, first: first, finished: [], cuts: [], over: false, mode: mode || 'het' };
   // Thắng trắng: chia bài có tứ quý 2 thì thắng ngay, ván kết thúc trước khi ai đánh
   players.forEach(function (p) {
