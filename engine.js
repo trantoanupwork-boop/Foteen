@@ -449,10 +449,11 @@ function beats(c, t) {
 
 function newGame(mode, names) {
   var deck = shuffle(makeDeck());
-  var players = [0, 1, 2, 3].map(function (i) {
-    return { seat: i, name: (names && names[i]) || ('Ghế ' + (i + 1)), bot: i > 0, hand: [], out: false, place: 0 };
-  });
-  for (var k = 0; k < 52; k++) players[k % 4].hand.push(deck[k]);
+  var N = (names && names.length) || 4;
+  var players = [];
+  for (var i = 0; i < N; i++) players.push({ seat: i, name: (names && names[i]) || ('Ghế ' + (i + 1)), bot: i > 0, hand: [], out: false, place: 0 });
+  var per = Math.floor(52 / N);
+  for (var k = 0; k < per * N; k++) players[k % N].hand.push(deck[k]);
   players.forEach(function (p) { p.hand.sort(function (a, b) { return str(a) - str(b); }); });
   var starter = 0;
   players.forEach(function (p) {
@@ -469,12 +470,14 @@ function newGame(mode, names) {
 }
 
 function nextActive(gm, seat) {
-  for (var i = 1; i <= 4; i++) { var s = (seat + i) % 4; if (!gm.players[s].out) return s; }
+  var N = gm.players.length;
+  for (var i = 1; i <= N; i++) { var s = (seat + i) % N; if (!gm.players[s].out) return s; }
   return seat;
 }
 function nextTurn(gm, seat) {
-  for (var i = 1; i <= 4; i++) {
-    var s = (seat + i) % 4, p = gm.players[s];
+  var N = gm.players.length;
+  for (var i = 1; i <= N; i++) {
+    var s = (seat + i) % N, p = gm.players[s];
     if (p.out || gm.passed[s]) continue;
     if (gm.top && s === gm.top.seat) continue;
     return s;
@@ -492,9 +495,9 @@ function advance(gm, seat) {
     gm.over = true; gm.top = null; gm.turn = null;
     return;
   }
-  if (gm.finished.length >= 3) {
+  if (gm.finished.length >= gm.players.length - 1) {
     var last = active[0];
-    if (last) { last.place = 4; gm.finished.push(last.seat); }
+    if (last) { last.place = gm.players.length; gm.finished.push(last.seat); }
     gm.over = true; gm.top = null; gm.turn = null;
     return;
   }
