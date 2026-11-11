@@ -1322,6 +1322,7 @@ function play(gm, seat, ids) {
   if (!c) return 'Đó không phải bộ hợp lệ.';
   if (gm.first && !cards.some(function (x) { return x.r === 0 && x.s === 3; })) return 'Ván đầu phải có 3 bích ♠.';
   if (!beats(c, gm.top ? gm.top.combo : null)) return 'Bộ này không đè được bàn.';
+  if (gm.top && gm.top.seat !== seat && isChatHeo(c, gm.top.combo) && gm.passed[seat]) return 'Bạn đã bỏ lượt nên không được chặt.';
   if (gm.top && gm.top.seat !== seat && isChatHeo(c, gm.top.combo)) {
     gm.cuts.push({ cutter: seat, victim: gm.top.seat, cards: gm.top.combo.cards.slice() });
   }
@@ -1412,6 +1413,23 @@ function settle(gm, rates) {
     ct.cards.forEach(function (c) { amt += isRed(c) ? rates.heodo : rates.heoden; });
     nets[ct.victim] -= amt; nets[ct.cutter] += amt;
     lines.push(gm.players[ct.cutter].name + ' chặt ' + ct.cards.map(cardName).join(' ') + ' của ' + gm.players[ct.victim].name + ': ' + amt + 'k');
+  });
+  // Thối 2: mỗi quân 2 còn trong tay bị tính như bị chặt 2 (đỏ/đen theo giá heo)
+  gm.players.forEach(function (p) {
+    if (p.seat === winner) return;
+    p.hand.forEach(function (c) {
+      if (c.r !== 12) return;
+      var amt = isRed(c) ? rates.heodo : rates.heoden;
+      nets[p.seat] -= amt; nets[winner] += amt;
+      lines.push(p.name + ' thối 2 ' + cardName(c) + ', bị tính như chặt: ' + amt + 'k');
+    });
+  });
+  // Cóng: chưa đánh lá nào (còn nguyên 13 lá) khi người khác đã hết bài, bị tính như chặt đôi 2
+  gm.players.forEach(function (p) {
+    if (p.seat === winner || p.hand.length !== 13) return;
+    var amt = rates.heodo + rates.heoden;
+    nets[p.seat] -= amt; nets[winner] += amt;
+    lines.push(p.name + ' cóng (chưa đánh lá nào), bị tính như chặt đôi 2: ' + amt + 'k');
   });
   return { nets: nets, lines: lines, winner: winner };
 }
