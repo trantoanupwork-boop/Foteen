@@ -1237,7 +1237,7 @@ function newGame(mode, names) {
   var N = (names && names.length) || 4;
   var players = [];
   for (var i = 0; i < N; i++) players.push({ seat: i, name: (names && names[i]) || ('Ghế ' + (i + 1)), bot: i > 0, hand: [], out: false, place: 0 });
-  var per = Math.floor(52 / N);
+  var per = 13; // mỗi người 13 lá, không phụ thuộc số người
   for (var k = 0; k < per * N; k++) players[k % N].hand.push(deck[k]);
   players.forEach(function (p) { p.hand.sort(function (a, b) { return str(a) - str(b); }); });
   var starter = 0;
