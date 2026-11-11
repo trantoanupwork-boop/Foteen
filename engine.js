@@ -435,10 +435,18 @@ function detect(cards) {
 function isHeoCombo(c) {
   return (c.type === 'single' || c.type === 'pair') && c.cards.every(function (x) { return x.r === 12; });
 }
+// Luật chặt heo: tứ quý chặt 1 quân 2 hoặc ba đôi thông; ba đôi thông chặt 1 quân 2;
+// bốn đôi thông (và dài hơn) chặt 1 quân 2, đôi 2, ba đôi thông và tứ quý.
 function isChatHeo(c, t) {
-  if (!t || !isHeoCombo(t)) return false;
-  if (c.type === 'quad') return true;
-  if (c.type === 'pairseq') return c.len >= 4 || (c.len >= 3 && t.type === 'single');
+  if (!t) return false;
+  var single2 = t.type === 'single' && t.cards[0].r === 12;
+  var pair2 = t.type === 'pair' && t.cards.every(function (x) { return x.r === 12; });
+  var ps3 = t.type === 'pairseq' && t.len === 3;
+  if (c.type === 'quad') return single2 || ps3;
+  if (c.type === 'pairseq') {
+    if (c.len === 3) return single2;
+    if (c.len >= 4) return single2 || pair2 || ps3 || t.type === 'quad';
+  }
   return false;
 }
 function beats(c, t) {
@@ -447,7 +455,7 @@ function beats(c, t) {
   return c.type === t.type && c.len === t.len && c.top > t.top;
 }
 
-function newGame(mode, names) {
+function newGame(mode, names, lead) {
   var deck = shuffle(makeDeck());
   var N = (names && names.length) || 4;
   var players = [];
@@ -455,11 +463,13 @@ function newGame(mode, names) {
   var per = 13; // mỗi người 13 lá, không phụ thuộc số người
   for (var k = 0; k < per * N; k++) players[k % N].hand.push(deck[k]);
   players.forEach(function (p) { p.hand.sort(function (a, b) { return str(a) - str(b); }); });
-  var starter = 0;
+  // Ván đầu: người có 3♠ đánh trước. Các ván sau: người thắng ván trước (lead) mở bàn, không cần 3♠.
+  var starter = 0, first = true;
   players.forEach(function (p) {
     if (p.hand.some(function (c) { return c.r === 0 && c.s === 3; })) starter = p.seat;
   });
-  var g = { players: players, turn: starter, top: null, passed: {}, first: true, finished: [], cuts: [], over: false, mode: mode || 'het' };
+  if (typeof lead === 'number' && lead >= 0 && lead < N) { starter = lead; first = false; }
+  var g = { players: players, turn: starter, top: null, passed: {}, first: first, finished: [], cuts: [], over: false, mode: mode || 'het' };
   // Thắng trắng: chia bài có tứ quý 2 thì thắng ngay, ván kết thúc trước khi ai đánh
   players.forEach(function (p) {
     if (p.hand.filter(function (c) { return c.r === 12; }).length === 4) {

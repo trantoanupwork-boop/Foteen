@@ -98,13 +98,14 @@ function startGame(room) {
   if (room.phase === 'lobby') room.order = [0, 1, 2, 3].filter(i => room.seats[i]);
   room.phase = 'play';
   room.roundNo++;
-  room.gm = TL.newGame(room.mode, room.order.map(r => room.seats[r].name));
+  room.gm = TL.newGame(room.mode, room.order.map(r => room.seats[r].name), room.lastWinner);
   afterMove(room);
 }
 function afterMove(room) {
   clearTimeout(room.turnTO); room.turnTO = null;
   const gm = room.gm;
   if (gm.over) {
+    room.lastWinner = gm.finished[0];
     room.phase = 'ready';
     room.rdy = { ready: [false, false, false, false], deadline: Date.now() + READY_MS };
     room.deadline = room.rdy.deadline;
