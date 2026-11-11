@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { TL } = require('./engine.js');
+const { makeFairRng, newFair, sha256hex } = require('./fair.js');
 
 const PORT = process.env.PORT || 3000;
 const PUB = path.join(__dirname, 'public');
@@ -74,7 +75,8 @@ function viewFor(room, me) {
       finished: gm.finished.map(m),
       cuts: gm.cuts.map(c => ({ cutter: m(c.cutter), victim: m(c.victim), cards: c.cards })),
       over: gm.over, mode: gm.mode,
-      trang: gm.trang == null ? null : m(gm.trang)
+      trang: gm.trang == null ? null : m(gm.trang),
+      fair: { gameId: room.fair.gameId, commit: room.fair.commit, reveal: room.fair.reveal }
     };
   }
   if (room.rdy) v.rdy = { ready: slots.map(r => (r == null ? false : !!room.rdy.ready[r])), left: Math.max(0, room.rdy.deadline - Date.now()) };
@@ -98,7 +100,9 @@ function startGame(room) {
   if (room.phase === 'lobby') room.order = [0, 1, 2, 3].filter(i => room.seats[i]);
   room.phase = 'play';
   room.roundNo++;
-  room.gm = TL.newGame(room.mode, room.order.map(r => room.seats[r].name), room.lastWinner);
+  room.fair = newFair();
+  console.log(`[fair] phòng ${room.code} ván ${room.fair.gameId} commit ${room.fair.commit}`);
+  room.gm = TL.newGame(room.mode, room.order.map(r => room.seats[r].name), room.lastWinner, makeFairRng(room.fair.secret));
   afterMove(room);
 }
 function afterMove(room) {
@@ -106,6 +110,8 @@ function afterMove(room) {
   const gm = room.gm;
   if (gm.over) {
     room.lastWinner = gm.finished[0];
+    room.fair.reveal = room.fair.secret.toString('hex');
+    console.log(`[fair] phòng ${room.code} ván ${room.fair.gameId} reveal ${room.fair.reveal} (kiểm: ${sha256hex(room.fair.secret) === room.fair.commit})`);
     room.phase = 'ready';
     room.rdy = { ready: [false, false, false, false], deadline: Date.now() + READY_MS };
     room.deadline = room.rdy.deadline;

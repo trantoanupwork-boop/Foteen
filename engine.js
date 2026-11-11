@@ -402,8 +402,10 @@ var SUIT_RANK = [1, 2, 3, 0]; // chỉ số chất gốc: 0 ♣ tép, 1 ♦ rô,
 function str(c) { return c.r * 4 + SUIT_RANK[c.s]; }
 function isRed(c) { return c.s === 1 || c.s === 2; }
 function cardName(c) { return RANKS[c.r] + SUITS[c.s]; }
-function shuffle(a) {
-  for (var i = a.length - 1; i > 0; i--) { var j = Phom.cryptoRng(i + 1); var t = a[i]; a[i] = a[j]; a[j] = t; }
+// Fisher–Yates; mặc định dùng CSPRNG của hệ thống, máy chủ có thể truyền rng có thể kiểm chứng (commit–reveal)
+function shuffle(a, rng) {
+  rng = rng || function (n) { return Phom.cryptoRng(n); };
+  for (var i = a.length - 1; i > 0; i--) { var j = rng(i + 1); var t = a[i]; a[i] = a[j]; a[j] = t; }
   return a;
 }
 function makeDeck() {
@@ -455,8 +457,8 @@ function beats(c, t) {
   return c.type === t.type && c.len === t.len && c.top > t.top;
 }
 
-function newGame(mode, names, lead) {
-  var deck = shuffle(makeDeck());
+function newGame(mode, names, lead, rng) {
+  var deck = shuffle(makeDeck(), rng);
   var N = (names && names.length) || 4;
   var players = [];
   for (var i = 0; i < N; i++) players.push({ seat: i, name: (names && names[i]) || ('Ghế ' + (i + 1)), bot: i > 0, hand: [], out: false, place: 0 });
