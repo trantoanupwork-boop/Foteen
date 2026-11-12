@@ -450,7 +450,8 @@ body:has(#gamePane.stage) > nav.hub-tabs,
 body:has(#gamePane.stage) > #hubScore,
 body:has(#gamePane.stage) #gameList { display: none !important; }
 body:has(#gamePane.stage) #gamePane {
-  position: fixed; inset: 0; z-index: 40; margin: 0; box-sizing: border-box;
+  position: fixed; left: 50%; top: 50%; width: 900px; height: 420px; z-index: 40; margin: 0; box-sizing: border-box;
+  transform: translate(-50%, -50%) scale(var(--k, 1)); transform-origin: center;
   display: flex; flex-direction: column; gap: 8px; overflow: hidden;
   background: var(--bg);
   padding: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
@@ -492,12 +493,7 @@ body:has(#gamePane.stage) #tlBoard .tl-center { top: 50%; transform: translate(-
 @media (orientation: portrait) {
   body:has(#gamePane.stage) { overflow: hidden; }
   body:has(#gamePane.stage) #gamePane {
-    inset: auto; top: 0; left: 0;
-    width: 100vh; height: 100vw;
-    width: 100dvh; height: 100dvw;
-    transform-origin: top left;
-    transform: translateX(100vw) rotate(90deg);
-    transform: translateX(100dvw) rotate(90deg);
+    transform: translate(-50%, -50%) rotate(90deg) scale(var(--k, 1));
     padding: 6px 10px;
   }
 }
@@ -2532,6 +2528,21 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
     setTimeout(function () { el.remove(); }, 1100);
   }
   // ---- Hiệu ứng bay của lá bài: bài thật vẫn do engine quyết định, animation chỉ hiển thị chuyển động
+  // Bàn chơi có khung chuẩn 900×420 và được co giãn để vừa mọi màn hình (cùng bố cục trên mọi máy)
+  function fitStage() {
+    var vw = window.innerWidth, vh = window.innerHeight;
+    if (!vw || !vh) return;
+    var portrait = vh >= vw;
+    var k = portrait ? Math.min(vw / 420, vh / 900) : Math.min(vw / 900, vh / 420);
+    document.documentElement.style.setProperty('--k', String(Math.max(0.2, k)));
+  }
+  window.addEventListener('resize', fitStage);
+  window.addEventListener('orientationchange', fitStage);
+  fitStage();
+  function stageScale() {
+    var k = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--k'));
+    return k > 0 ? k : 1;
+  }
   function boardAngle() {
     var g = $('gamePane'), t = g ? getComputedStyle(g).transform : 'none';
     if (!t || t === 'none') return 0;
@@ -2540,9 +2551,10 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
   }
   function rectOf(el) {
     var r = el.getBoundingClientRect();
-    var rotated = Math.abs(r.width - el.offsetHeight) < Math.abs(r.width - el.offsetWidth);
+    var k = stageScale();
+    var rotated = Math.abs(r.width - el.offsetHeight * k) < Math.abs(r.width - el.offsetWidth * k);
     return { cx: r.left + r.width / 2, cy: r.top + r.height / 2,
-      w: rotated ? el.offsetHeight : el.offsetWidth, h: rotated ? el.offsetWidth : el.offsetHeight, angle: rotated ? boardAngle() : 0 };
+      w: (rotated ? el.offsetHeight : el.offsetWidth) * k, h: (rotated ? el.offsetWidth : el.offsetHeight) * k, angle: rotated ? boardAngle() : 0 };
   }
   var audioCtx = null;
   function tickSound() {
