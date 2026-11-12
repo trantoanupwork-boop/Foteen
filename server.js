@@ -10,6 +10,8 @@ const PORT = process.env.PORT || 3000;
 const PUB = path.join(__dirname, 'public');
 // Mất kết nối quá lâu khi đang chơi thì người đó bị loại khỏi ván (không có AI tiếp quản)
 const DISCONNECT_MS = +process.env.DISCONNECT_MS || 60000;
+// Thời gian suy nghĩ tối đa cho mỗi lượt đánh; hết giờ thì người đó bị loại khỏi ván
+const TURN_MS = +process.env.TURN_MS || 60000;
 // Giữ lá cuối cùng trên bàn trước khi hiện kết quả ván
 const FINAL_TRICK_MS = +process.env.FINAL_TRICK_MS || 1600;
 const READY_MS = +process.env.READY_MS || 10000;
@@ -59,7 +61,7 @@ function viewFor(room, me) {
   const v = { real: me, phase: room.phase, mode: room.mode, roundNo: room.roundNo,
     seats: slots.map(r => (r == null ? null : seatInfo(room.seats[r]))),
     canStart: room.phase === 'lobby' && canStart(room),
-    left: Math.max(0, room.deadline - Date.now()) };
+    left: Math.max(0, room.deadline - Date.now()), turnUntil: (room.phase === 'play' && room.gm && !room.gm.over && !room.hold) ? room.deadline : 0, serverNow: Date.now() };
   if (room.gm) {
     const gm = room.gm, N = room.order.length, meE = room.order.indexOf(me);
     const hold = !!room.hold; // đang giữ lá cuối: coi như chưa kết thúc, không có lượt
@@ -123,6 +125,7 @@ function startGame(room) {
 }
 function afterMove(room) {
   const gm = room.gm;
+  clearTimeout(room.turnTO); room.turnTO = null;
   if (gm.over && !room.finalShown) {
     room.finalShown = true;
     // Giữ hiển thị một lúc trước khi sang kết quả: lá cuối (ván thường) hoặc bài các người (thắng trắng)
@@ -150,10 +153,20 @@ function afterMove(room) {
       room.phase = 'lobby'; room.rdy = null; // giữ kết quả ván vừa xong để người còn lại vẫn xem được
       room.seats.forEach(s => { if (s) s.ready = false; });
     }
+  } else if (gm.turn !== null) { // đồng hồ lượt: hết giờ thì loại người đang có lượt
+    room.deadline = Date.now() + TURN_MS;
+    room.turnTO = setTimeout(() => turnTimeout(room), TURN_MS);
   } else {
-    room.deadline = 0; // không có đồng hồ lượt: người không online thì bị loại theo DISCONNECT_MS
+    room.deadline = 0;
   }
   broadcastView(room);
+}
+
+// Hết thời gian suy nghĩ của lượt: người đang có lượt bị loại khỏi ván (máy không đánh thay)
+function turnTimeout(room) {
+  const gm = room.gm;
+  if (room.phase !== 'play' || !gm || gm.over || gm.turn === null || !room.order) return;
+  dropFromGame(room, room.order[gm.turn], 'timeout');
 }
 
 // Tách ghế khỏi bàn: cắt ghế (không vào lại được) và báo người đó rời bàn
