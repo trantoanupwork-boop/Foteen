@@ -1642,6 +1642,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
   function pickOne(a) { return a[Math.floor(csRand() * a.length)]; }
   var $ = function (id) { return document.getElementById(id); };
 
+  function isAv(a) { return !!(a && typeof a === 'object' && a.skin && a.shirt); }
   function defAv(i) {
     var a = JSON.parse(JSON.stringify(AV_DEFAULT[i % AV_DEFAULT.length]));
     a.v = 2;
@@ -2752,7 +2753,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
       });
     }
     state.tlSetup.forEach(function (s, i) {
-      if (!s.av || !s.av.b) s.av = defAv(i);
+      if (!isAv(s.av)) s.av = defAv(i);
       if (s.pid && !tlPlayerById(s.pid)) s.pid = null;
     });
     var me = meGet();
@@ -3092,9 +3093,9 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
     tlOrder = v.seats.map(function (s, i) {
       // Ghế của mình: dùng nhân vật đang lưu trên máy này để khớp với phần chọn nhân vật
       var mine = i === 0 ? meGet() : null;
-      var av0 = mine && mine.av && mine.av.b ? mine.av : null;
+      var av0 = isAv(mine && mine.av) ? mine.av : null;
       var nm = mine && mine.name ? mine.name : (s && s.name);
-      return s ? { name: nm, av: av0 || ((s.av && s.av.b) ? s.av : defAv(i)), pid: null } : { name: 'Trống', av: defAv(i), pid: null };
+      return s ? { name: nm, av: av0 || (isAv(s.av) ? s.av : defAv(i)), pid: null } : { name: 'Trống', av: defAv(i), pid: null };
     });
     if (online.lastRound !== v.roundNo) { online.lastRound = v.roundNo; dealPending = true; tlRecorded = false; tlSel = {}; tlHintList = null; }
     tg = v.tg || null;
@@ -3154,7 +3155,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
       '<div class="rdy-row">' + v.seats.map(function (s, i) {
         if (!s) return '<div class="rdy-seat"><span class="rdy-empty" aria-label="Ghế trống"></span></div>';
         return '<div class="rdy-seat"><span class="rdy-tag ' + (s.ready ? 'ok' : 'no') + '">' + (s.ready ? 'Sẵn sàng' : 'Chưa sẵn sàng') + '</span>' +
-          fbHTML({ av: (i === 0 && meGet() && meGet().av && meGet().av.b) ? meGet().av : ((s.av && s.av.b) ? s.av : defAv(i)) }) +
+          fbHTML({ av: (i === 0 && isAv(meGet() && meGet().av)) ? meGet().av : (isAv(s.av) ? s.av : defAv(i)) }) +
           '<div class="tl-nm">' + esc(i === 0 && meGet() && meGet().name ? meGet().name : s.name) + (i === v.hostSlot ? ' 👑' : '') + '</div></div>';
       }).join('') + '</div>' +
       '<div class="hint-text">Gửi link này cho bạn bè: ' + esc(location.origin + '/?room=' + online.code) + '</div>' +

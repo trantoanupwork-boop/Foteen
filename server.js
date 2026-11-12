@@ -43,6 +43,8 @@ function ensureHost(room) {
   if (room.host == null || !room.seats[room.host]) room.host = room.seats.findIndex(s => s);
   if (room.host < 0) room.host = null;
 }
+// Nhân vật hợp lệ: có các bộ phận cơ bản (da và áo luôn có)
+function isAv(a) { return !!(a && typeof a === 'object' && a.skin && a.shirt); }
 function clean(s, max) { return String(s == null ? '' : s).replace(/[\u0000-\u001f]/g, '').trim().slice(0, max); }
 function canStart(room) {
   const seated = room.seats.filter(Boolean);
@@ -319,12 +321,12 @@ const server = http.createServer((req, res) => {
         seat = room.seats.findIndex(s => !s);
         if (seat < 0) return json(res, 409, { error: 'Phòng đã đủ 4 người.' });
         tok = crypto.randomBytes(16).toString('hex');
-        const av = body.av && typeof body.av === 'object' && body.av.b ? body.av : {};
+        const av = isAv(body.av) ? body.av : {};
         room.seats[seat] = { token: tok, name: clean(body.name, 20) || 'Bạn', av, ready: false, clients: new Set() };
       } else {
         if (body.name) room.seats[seat].name = clean(body.name, 20) || room.seats[seat].name;
         // Vào lại phòng: cập nhật nhân vật hiện tại của máy này
-        if (body.av && typeof body.av === 'object' && body.av.b) room.seats[seat].av = body.av;
+        if (isAv(body.av)) room.seats[seat].av = body.av;
       }
       ensureHost(room);
       broadcastView(room);
