@@ -682,16 +682,20 @@ button, [data-tlid], [data-react], [id^="tlOpp"] .tl-fb, [id^="phOpp"] .tl-fb, [
         <div class="tl-center" aria-live="polite">
           <div class="tl-label" id="tlLabel"></div>
           <div class="tl-table-row">
-            <button class="btn tl-side pass" id="tlPass" type="button">Bỏ lượt</button>
             <div class="tl-trick" id="tlTrick"></div>
-            <button class="btn tl-side play primary" id="tlPlay" type="button">Đánh bài</button>
           </div>
         </div>
         <p class="tl-clock" id="tlClock" hidden></p>
         <div class="ready-mid" id="readyMidTl" hidden></div>
         <div class="tl-bottom">
           <div id="tlMe" class="tl-me"></div>
-          <div class="tl-hand" id="tlHand" aria-label="Bài của bạn"></div>
+          <div class="tl-hwrap">
+            <div class="tl-pp-row">
+              <button class="btn tl-side pass" id="tlPass" type="button">Bỏ lượt</button>
+              <button class="btn tl-side play primary" id="tlPlay" type="button">Đánh bài</button>
+            </div>
+            <div class="tl-hand" id="tlHand" aria-label="Bài của bạn"></div>
+          </div>
         </div>
       </div>
       <p class="status" id="tlStatus" role="status"></p>
@@ -815,6 +819,11 @@ body:has(#gamePane.stage) #tlBoard #tlHand .tlc.art { width: 44px; }
 @keyframes passFade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
 /* Các nhóm bài trong vòng: xếp chồng lệch nhau, nhóm mới nằm trên */
 #tlBoard #tlTrick { position: relative; }
+/* Nút Bỏ lượt / Đánh bài nằm ngay trên bộ bài của bạn */
+#tlBoard .tl-hwrap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+#tlBoard .tl-hwrap #tlHand { flex: none; }
+#tlBoard .tl-pp-row { display: flex; gap: 8px; justify-content: flex-start; align-items: center; padding: 0 0 6px 4px; }
+#tlBoard .tl-pp-row .tl-side { flex: none; }
 .trick-group { position: absolute; left: 50%; top: 50%; display: flex; gap: 4px; transform: translate(-50%, -50%) translate(calc(var(--gi) * 9px - 12px), calc(var(--gi) * 7px - 10px)); }
 #tlTrick.sweep { opacity: 0; transition: opacity .4s ease-out; }
 @keyframes trickShake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, 2px); } 75% { transform: translate(3px, -2px); } }
