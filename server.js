@@ -10,6 +10,8 @@ const PORT = process.env.PORT || 3000;
 const PUB = path.join(__dirname, 'public');
 // Mất kết nối quá lâu khi đang chơi thì người đó bị loại khỏi ván (không có AI tiếp quản)
 const DISCONNECT_MS = +process.env.DISCONNECT_MS || 60000;
+// Giữ lá cuối cùng trên bàn trước khi hiện kết quả ván
+const FINAL_TRICK_MS = +process.env.FINAL_TRICK_MS || 1600;
 const READY_MS = +process.env.READY_MS || 10000;
 const ROOM_IDLE_MS = 3 * 60 * 60 * 1000;
 const KINDS = ['slap', 'hammer', 'egg', 'kiss'];
@@ -60,6 +62,8 @@ function viewFor(room, me) {
     left: Math.max(0, room.deadline - Date.now()) };
   if (room.gm) {
     const gm = room.gm, N = room.order.length, meE = room.order.indexOf(me);
+    const hold = !!room.hold; // đang giữ lá cuối: coi như chưa kết thúc, không có lượt
+    const shownTop = hold ? gm.lastPlay : gm.top;
     const P = j => POS[N][(j - meE + N) % N];
     const m = j => P(j);
     const players = [0, 1, 2, 3].map(p => ({ seat: p, name: '', bot: false, out: true, place: 0, hand: [], absent: true }));
@@ -69,13 +73,13 @@ function viewFor(room, me) {
     });
     v.tg = {
       players,
-      turn: gm.turn === null ? null : m(gm.turn),
-      top: gm.top ? { combo: gm.top.combo, seat: m(gm.top.seat) } : null,
+      turn: hold || gm.turn === null ? null : m(gm.turn),
+      top: shownTop ? { combo: shownTop.combo, seat: m(shownTop.seat) } : null,
       passed: Object.keys(gm.passed).filter(k => gm.passed[k]).reduce((o, k) => { o[m(+k)] = true; return o; }, {}),
       first: gm.first,
       finished: gm.finished.map(m),
       cuts: gm.cuts.map(c => ({ cutter: m(c.cutter), victim: m(c.victim), cards: c.cards })),
-      over: gm.over, mode: gm.mode,
+      over: gm.over && !hold, mode: gm.mode,
       trang: gm.trang == null ? null : m(gm.trang),
       fair: { gameId: room.fair.gameId, commit: room.fair.commit, reveal: room.fair.reveal }
     };
@@ -101,6 +105,7 @@ function startGame(room) {
   // Thứ tự ván = những ghế đang có người (người đã rời bàn không vào lại)
   room.order = [0, 1, 2, 3].filter(i => room.seats[i]);
   room.phase = 'play';
+  room.hold = false; room.finalShown = false;
   room.roundNo++;
   room.fair = newFair();
   console.log(`[fair] phòng ${room.code} ván ${room.fair.gameId} commit ${room.fair.commit}`);
@@ -110,6 +115,15 @@ function startGame(room) {
 }
 function afterMove(room) {
   const gm = room.gm;
+  if (gm.over && !room.finalShown) {
+    room.finalShown = true;
+    if (gm.lastPlay) { // giữ lá cuối trên bàn một lúc rồi mới sang kết quả
+      room.hold = true; room.deadline = 0;
+      broadcastView(room);
+      room.holdTO = setTimeout(() => { room.hold = false; afterMove(room); }, FINAL_TRICK_MS);
+      return;
+    }
+  }
   if (gm.over) {
     room.offTO.forEach((t, i) => { clearTimeout(t); room.offTO[i] = null; });
     room.lastWinner = room.order[gm.finished[0]];
@@ -136,6 +150,7 @@ function dropFromGame(room, seat, reason) {
   if (room.phase !== 'play' || !room.gm || !room.order || !room.order.includes(seat)) return false;
   clearTimeout(room.offTO[seat]); room.offTO[seat] = null;
   if (!TL.removePlayer(room.gm, room.order.indexOf(seat))) return false;
+  if (room.gm.over) room.finalShown = true; // ván kết thúc vì người rời bàn: không có lá cuối để giữ
   room.seats[seat] = null;
   room.clients.forEach(c => {
     if (c.seat !== seat) return;

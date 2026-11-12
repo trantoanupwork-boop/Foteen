@@ -1420,6 +1420,7 @@ function play(gm, seat, ids) {
   p.hand = p.hand.filter(function (x) { return ids.indexOf(x.id) < 0; });
   gm.first = false;
   gm.top = { combo: c, seat: seat };
+  gm.lastPlay = gm.top; // lá đánh cuối cùng: vẫn hiển thị khi ván vừa kết thúc
   if (!p.hand.length) { p.out = true; p.place = gm.finished.length + 1; gm.finished.push(seat); }
   advance(gm, seat);
   return null;
@@ -3182,8 +3183,8 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
       if (trail.length && !trailSweepTO) { trail = []; sweepTrail(); }
       tlTrickKey = '';
     } else {
+      // Ván vừa xong: giữ nguyên các nhóm bài trên bàn (gồm lá cuối) để người chơi kịp nhìn
       $('tlLabel').textContent = tg.trang !== undefined && tg.trang !== null ? 'Thắng trắng! ' + tg.players[tg.trang].name + ' có tứ quý 2' : 'Ván xong';
-      $('tlTrick').innerHTML = '';
     }
 
     $('tlHand').innerHTML = sortHand(tg.players[0].hand).map(function (c) {
@@ -3204,6 +3205,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
     $('tlHint').disabled = !myTurn;
     var msg;
     if (tg.over) msg = 'Ván xong. Xem kết quả bên dưới.';
+    else if (tg.turn === null) msg = 'Ván xong...';
     else if (!myTurn) msg = tg.players[tg.turn].name + ' đang đánh...';
     else if (!cards.length) msg = tg.top ? 'Chọn bộ đè bàn, hoặc bỏ lượt.' : 'Bạn mở bàn, chọn một bộ để đánh.';
     else if (!combo) msg = 'Bộ này chưa hợp lệ.';

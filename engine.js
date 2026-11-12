@@ -549,6 +549,7 @@ function play(gm, seat, ids) {
   p.hand = p.hand.filter(function (x) { return ids.indexOf(x.id) < 0; });
   gm.first = false;
   gm.top = { combo: c, seat: seat };
+  gm.lastPlay = gm.top; // lá đánh cuối cùng: vẫn hiển thị khi ván vừa kết thúc
   if (!p.hand.length) { p.out = true; p.place = gm.finished.length + 1; gm.finished.push(seat); }
   advance(gm, seat);
   return null;
