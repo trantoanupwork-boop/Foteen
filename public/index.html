@@ -270,6 +270,11 @@ details.rates summary { cursor: pointer; font-family: var(--font-display); font-
 .tl-pos { color: var(--pos); }
 .tl-neg { color: var(--neg); }
 .tl-cfgs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+/* Sảnh: chỉ hiện nhân vật của bạn, đặt cạnh khung tạo bàn online */
+.tl-setup-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; }
+.tl-setup-row #tlSetup { grid-template-columns: minmax(0, 1fr); }
+.tl-setup-row #tlSetup > :not(:first-child) { display: none; }
+.tl-setup-row .online-box { margin: 0; }
 .tl-cfg { display: flex; gap: 8px; align-items: center; background: var(--soft); border: 2px solid var(--edge); border-radius: 14px; padding: 8px; min-width: 0; }
 .tl-cfg-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .tl-name { width: 100%; border: 0; border-bottom: 2px dashed var(--line); background: transparent; font-weight: 800; padding: 2px 0; min-width: 0; }
@@ -660,13 +665,15 @@ button, [data-tlid], [data-react], [id^="tlOpp"] .tl-fb, [id^="phOpp"] .tl-fb, [
     <h2 id="h-game">Bàn Tiến lên</h2>
     <div class="tl-setup">
       <p class="hint-text">Tạo nhân vật của bạn trên máy này rồi vào bàn. Các ghế còn lại là máy.</p>
-      <div class="tl-cfgs" id="tlSetup"></div>
-      <div class="online-box" id="onlineBox" hidden></div>
-      <p class="tl-note" id="tlNote"></p>
       <div class="seg tlgm-seg" role="group" aria-label="Kiểu chơi bài">
         <button type="button" data-tlgm="het">Đánh đến hết</button>
         <button type="button" data-tlgm="dem">Đếm lá</button>
       </div>
+      <div class="tl-setup-row">
+        <div class="tl-cfgs" id="tlSetup"></div>
+        <div class="online-box" id="onlineBox" hidden></div>
+      </div>
+      <p class="tl-note" id="tlNote"></p>
       <div class="tl-row tl-actions">
         <button class="btn primary" id="tlStart" type="button">Chia bài</button>
       </div>
