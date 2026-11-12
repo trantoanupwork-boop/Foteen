@@ -807,7 +807,6 @@ body:has(#gamePane.stage) #tlBoard #tlHand .tlc.art { width: 44px; }
 #tlBoard #tlResult, #phBoard #phResult { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 35; width: auto; padding: 6px 10px; box-shadow: 0 3px 0 var(--shadow); }
 .tl-mini { margin: 0; font-size: 13px; }
 /* Căn tay bài ra giữa bàn ngang */
-body:has(#gamePane.stage) #tlBoard #tlHand { position: relative; top: -50px; }
 /* Hiệu ứng bay của lá bài */
 .fly-card { position: fixed; z-index: 9500; pointer-events: none; transform-origin: 50% 50%; will-change: transform; }
 .fly-card > .tlc { width: 100% !important; height: 100% !important; margin: 0 !important; }
@@ -823,6 +822,10 @@ body:has(#gamePane.stage) #tlBoard #tlHand { position: relative; top: -50px; }
 .tl-info { position: absolute; left: 10px; top: 58px; z-index: 20; background: rgba(0, 0, 0, 0.38); color: #fff; border-radius: 10px; padding: 4px 9px; font-size: 12px; line-height: 1.35; max-width: 46%; pointer-events: none; }
 .tl-info .tl-pos { color: #7CFC9A; }
 .tl-info .tl-neg { color: #FF8A80; }
+/* Điện thoại dọc: góc bàn xoay góc dưới-trái (dưới tay bài) để không che avatar */
+@media (orientation: portrait) {
+  #tlBoard #tlInfo { top: 170px; left: 590px; bottom: auto; right: auto; font-size: 11px; line-height: 1.25; padding: 3px 7px; }
+}
 </style>
 <script>
 // Phỏm miền Nam — engine thuần (không DOM). Dùng được trong trình duyệt và Node.
