@@ -835,9 +835,8 @@ body:has(#gamePane.stage) #tlBoard #tlHand .tlc.art { width: 44px; }
   body:has(#gamePane.stage) #tlBoard #chatBtn { grid-column: 2; grid-row: 1; }
   body:has(#gamePane.stage) #tlBoard .tl-pp-row { order: 2; flex: none; flex-direction: column; justify-content: flex-start; align-items: stretch; gap: 10px; padding: 0 0 0 6px; }
 }
-.trick-group.newest { z-index: 2; }
-.trick-tag { position: absolute; z-index: 3; bottom: 3px; left: 3px; font-size: 10px; font-weight: 800; color: #fff; background: rgba(0, 0, 0, 0.55); padding: 1px 8px; border-radius: 99px; white-space: nowrap; pointer-events: none; }
-.trick-group { position: absolute; left: 50%; top: 50%; display: flex; gap: 4px; transform: translate(-50%, -50%) translate(calc(var(--gi) * 46px - 30px), calc(var(--gi) * 34px - 22px)); }
+.trick-group.newest { z-index: 2; transform: translate(-50%, -50%) translate(calc(var(--gi) * 12px - 6px), calc(var(--gi) * 8px - 4px)) rotate(45deg); }
+.trick-group { position: absolute; left: 50%; top: 50%; display: flex; gap: 4px; transform: translate(-50%, -50%) translate(calc(var(--gi) * 12px - 6px), calc(var(--gi) * 8px - 4px)); }
 #tlTrick.sweep { opacity: 0; transition: opacity .4s ease-out; }
 @keyframes trickShake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, 2px); } 75% { transform: translate(3px, -2px); } }
 #tlTrick.shake { animation: trickShake .3s ease-in-out; }
@@ -2504,9 +2503,7 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
     // Nhóm mới nhất nằm trên cùng (là phần tử cuối), có tên người đánh để phân biệt.
     var shown = trail.slice(-2);
     return shown.map(function (g, i) {
-      var who = (tg.players[g.seat] || {}).name || '';
       return '<div class="trick-group' + (i === shown.length - 1 ? ' newest' : '') + '" style="--gi:' + i + '">' +
-        '<span class="trick-tag">' + esc(who) + '</span>' +
         g.cards.map(function (c, j) { return tlCardHTML(c, '', tlPileAttrs(c, j, g.seat)); }).join('') + '</div>';
     }).join('');
   }
