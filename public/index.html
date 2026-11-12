@@ -697,7 +697,6 @@ button, [data-tlid], [data-react], [id^="tlOpp"] .tl-fb, [id^="phOpp"] .tl-fb, [
       <div class="actions tl-actions">
         <button class="btn" id="tlHint" type="button">Gợi ý</button>
         <button class="btn" id="tlSort" type="button">Xếp: số</button>
-        <button class="btn" id="tlFast" type="button">Chia: chậm</button>
       </div>
     </div>
 
@@ -2454,8 +2453,7 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
   var dealPending = false, playSrcRects = null, lastPassRound = -1, lastPassSet = {};
   // Các nhóm bài đã đánh trong vòng hiện tại (xếp chồng, nhóm mới nằm trên)
   var trail = [], trailRound = -1, trailSweepTO = null;
-  var fastDeal = false;
-  try { fastDeal = localStorage.getItem('forteen-fastdeal') === '1'; } catch (e) { fastDeal = false; }
+  var fastDeal = true; // chia nhanh: không bay lá lúc chia bài
   function trailHTML() {
     // Lịch sử đầy đủ vẫn giữ trong trail; chỉ hiển thị 4 nhóm gần nhất để không che nút điều khiển
     var shown = trail.slice(-4), base = trail.length - shown.length;
@@ -3286,13 +3284,6 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
     tlFlash = 'Gợi ý ' + ((tlHintIdx - 1) % n + 1) + '/' + n + ': ' + tlDescribe(c);
     renderGame();
   });
-  function syncFast() { $('tlFast').textContent = fastDeal ? 'Chia: nhanh' : 'Chia: chậm'; }
-  $('tlFast').addEventListener('click', function () {
-    fastDeal = !fastDeal;
-    try { localStorage.setItem('forteen-fastdeal', fastDeal ? '1' : '0'); } catch (e) { /* bỏ qua */ }
-    syncFast();
-  });
-  syncFast();
   $('tlPlay').addEventListener('click', function () {
     if (!tg) return;
     if (online) {
