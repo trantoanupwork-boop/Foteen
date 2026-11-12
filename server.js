@@ -86,7 +86,7 @@ function viewFor(room, me) {
       fair: { gameId: room.fair.gameId, commit: room.fair.commit, reveal: room.fair.reveal }
     };
   }
-  if (room.rdy) v.rdy = { ready: slots.map(r => (r == null ? false : !!room.rdy.ready[r])), left: Math.max(0, room.rdy.deadline - Date.now()), until: room.rdy.deadline, now: Date.now() };
+  if (room.rdy) v.rdy = { ready: slots.map(r => (r == null ? false : !!(room.seats[r] && room.seats[r].clients.size > 0))), left: Math.max(0, room.rdy.deadline - Date.now()), until: room.rdy.deadline, now: Date.now() };
   return v;
 }
 function send(client, event, data) {

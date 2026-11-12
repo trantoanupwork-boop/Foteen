@@ -824,6 +824,11 @@ body:has(#gamePane.stage) #tlBoard #tlHand .tlc.art { width: 44px; }
 @keyframes passFade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
 /* Các nhóm bài trong vòng: xếp chồng lệch nhau, nhóm mới nằm trên */
 #tlBoard #tlTrick { position: relative; }
+.rdy-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 4px 0; }
+.rdy-seat { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
+.rdy-tag { font-size: 11px; font-weight: 800; color: #fff; border: 2px solid #fff; border-radius: 99px; padding: 1px 8px; white-space: nowrap; box-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
+.rdy-tag.ok { background: #2E8B57; }
+.rdy-tag.no { background: #7A7F86; }
 /* Mũi tên chỉ lượt: chỉ có một mũi tên, nằm trên đầu nhân vật đang có lượt */
 #tlBoard .tl-who { position: relative; }
 #tlBoard .tl-who.turn::before { content: ''; position: absolute; left: 50%; bottom: 100%; margin-bottom: 4px; transform: translateX(-50%); width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 13px solid #FFD43B; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); z-index: 6; animation: tlArrowBob .8s ease-in-out infinite; pointer-events: none; }
@@ -3294,7 +3299,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
     var ok = curGame === 'phom' ? phRecord() : tlRecord();
     if (!ok) return; // không ghi được vào sổ thì không tự chia ván mới, tránh mất kết quả
     rdy.on = true;
-    rdy.ready = [0, 1, 2, 3].map(function (i) { return !rdyIsHuman(i); });
+    rdy.ready = [true, true, true, true]; // không cần bấm: tự chia sau đếm ngược
     rdy.deadline = Date.now() + RDY_LIMIT;
     rdy.timer = setTimeout(readyDeal, RDY_LIMIT);
     rdy.tick = setInterval(readyTick, 1000);
@@ -3339,11 +3344,21 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
     }).join(' · ') + '</p>';
   }
   function readyHTML() {
-    var setup = online && curGame !== 'phom' ? tlOrder : tlFixSetup();
     var left = Math.max(0, Math.ceil((rdy.deadline - Date.now()) / 1000));
-    return '<div class="ready-box"><p class="tl-mini">Ván mới sau <span id="readyCount">' + left + '</span>s · ' +
-      setup.map(function (s, i) { return esc(s.name || 'Ghế') + (rdy.ready[i] ? ' ✓' : ''); }).join(' · ') + '</p>' +
-      '</div>';
+    var head = '<p class="tl-mini">Ván mới sau <span id="readyCount">' + left + '</span>s</p>';
+    if (curGame === 'phom') { // Phỏm giữ dạng chữ
+      return '<div class="ready-box">' + head + '<p class="tl-mini">' + tlFixSetup().map(function (s, i) {
+        return esc(s.name || 'Ghế') + (rdy.ready[i] ? ' ✓' : '');
+      }).join(' · ') + '</p></div>';
+    }
+    // Tiến lên: hình nhân vật, trên đầu ghi Sẵn sàng / Chưa sẵn sàng
+    var setup = online ? tlOrder : tlFixSetup();
+    var seats = setup.map(function (s, i) { return { s: s, i: i }; }).filter(function (x) { return x.s && x.s.name && x.s.name !== 'Trống'; });
+    return '<div class="ready-box">' + head + '<div class="rdy-row">' + seats.map(function (x) {
+      var ok = !!rdy.ready[x.i];
+      return '<div class="rdy-seat"><span class="rdy-tag ' + (ok ? 'ok' : 'no') + '">' + (ok ? 'Sẵn sàng' : 'Chưa sẵn sàng') + '</span>' +
+        fbHTML(x.s) + '<div class="tl-nm">' + esc(x.s.name) + '</div></div>';
+    }).join('') + '</div></div>';
   }
   function renderReady() {
     var on = curGame === 'phom';
