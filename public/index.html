@@ -807,6 +807,12 @@ body:has(#gamePane.stage) #tlBoard #tlHand .tlc.art { width: 44px; }
 .tl-mini { margin: 0; font-size: 13px; }
 /* Căn tay bài ra giữa bàn ngang */
 body:has(#gamePane.stage) #tlBoard #tlHand { position: relative; top: -50px; }
+/* Hiệu ứng bay của lá bài */
+.fly-card { position: fixed; z-index: 9500; pointer-events: none; transform-origin: 50% 50%; will-change: transform; }
+.fly-card > .tlc { width: 100% !important; height: 100% !important; margin: 0 !important; }
+.fly-back { width: 100%; height: 100%; box-sizing: border-box; border-radius: 8px; border: 2px solid #222; background: repeating-linear-gradient(45deg, #b02a2a 0 6px, #8c1f1f 6px 12px); box-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
+.fx-pass { position: absolute; left: 50%; bottom: calc(100% + 4px); transform: translateX(-50%); z-index: 75; background: #444; color: #fff; font-size: 12px; font-weight: 800; border-radius: 99px; padding: 2px 9px; white-space: nowrap; pointer-events: none; animation: passFade 1.1s ease-out forwards; }
+@keyframes passFade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
 </style>
 <script>
 // Phỏm miền Nam — engine thuần (không DOM). Dùng được trong trình duyệt và Node.
@@ -2438,13 +2444,99 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
 
   /* ---------- Chơi Tiến lên trên bàn sổ ---------- */
   var tg = null, tlOrder = [], tlSel = {}, tlTimer = null, tlFlash = '', tlRecorded = false, tlGameMode = 'het';
-  var dealPending = false;
+  var dealPending = false, playSrcRects = null, lastPassRound = -1, lastPassSet = {};
+  function showPassLabel(seat) {
+    var host = $(bubbleHostId(seat));
+    if (!host) return;
+    var el = document.createElement('div');
+    el.className = 'fx-pass';
+    el.textContent = 'BỎ LƯỢT';
+    host.appendChild(el);
+    setTimeout(function () { el.remove(); }, 1100);
+  }
+  // ---- Hiệu ứng bay của lá bài: bài thật vẫn do engine quyết định, animation chỉ hiển thị chuyển động
+  function boardAngle() {
+    var g = $('gamePane'), t = g ? getComputedStyle(g).transform : 'none';
+    if (!t || t === 'none') return 0;
+    var m = new DOMMatrix(t);
+    return Math.round(Math.atan2(m.b, m.a) * 180 / Math.PI);
+  }
+  function rectOf(el) {
+    var r = el.getBoundingClientRect();
+    var rotated = Math.abs(r.width - el.offsetHeight) < Math.abs(r.width - el.offsetWidth);
+    return { cx: r.left + r.width / 2, cy: r.top + r.height / 2,
+      w: rotated ? el.offsetHeight : el.offsetWidth, h: rotated ? el.offsetWidth : el.offsetHeight, angle: rotated ? boardAngle() : 0 };
+  }
+  var audioCtx = null;
+  function tickSound() {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = 1400; g.gain.value = 0.025;
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + 0.03);
+    } catch (e) { /* trình duyệt chặn âm thanh: bỏ qua */ }
+  }
+  function flyTo(src, dst, face, delay, onArrive) {
+    var w = document.createElement('div');
+    w.className = 'fly-card';
+    w.style.left = (dst.cx - dst.w / 2) + 'px';
+    w.style.top = (dst.cy - dst.h / 2) + 'px';
+    w.style.width = dst.w + 'px';
+    w.style.height = dst.h + 'px';
+    w.innerHTML = face || '<div class="fly-back"></div>';
+    document.body.appendChild(w);
+    var dx = src.cx - dst.cx, dy = src.cy - dst.cy, a = dst.angle || 0, tilt = dx >= 0 ? -12 : 12;
+    var anim = w.animate([
+      { transform: 'translate(' + dx + 'px,' + dy + 'px) rotate(' + (a + tilt) + 'deg) scale(.7)', opacity: 1, offset: 0 },
+      { transform: 'translate(' + (dx / 2) + 'px,' + (dy / 2 - 18) + 'px) rotate(' + (a - tilt / 2) + 'deg) scale(1.04)', offset: 0.55 },
+      { transform: 'translate(0px,0px) rotate(' + a + 'deg) scale(1)', opacity: 1, offset: 1 }
+    ], { duration: 360, delay: delay, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both' });
+    anim.onfinish = function () { w.remove(); if (onArrive) onArrive(); };
+    return w;
+  }
   function playDeal(el) {
     if (!dealPending) return;
     dealPending = false;
-    el.classList.add('dealing');
-    Array.prototype.forEach.call(el.children, function (k, i) { k.style.animationDelay = (i * 0.06) + 's'; });
-    setTimeout(function () { el.classList.remove('dealing'); }, 1600);
+    var isTl = el.id === 'tlHand';
+    var players = isTl ? tg.players : pg.players;
+    var seats = [];
+    players.forEach(function (p, i) { if (!p.absent) seats.push(i); });
+    var trick = $(isTl ? 'tlTrick' : 'phDiscard');
+    var src = trick ? rectOf(trick) : { cx: window.innerWidth / 2, cy: window.innerHeight / 2 };
+    var STEP = 55, FLY = 360, order = [];
+    for (var r = 0; r < 13; r++) seats.forEach(function (sx) { order.push({ s: sx, r: r }); });
+    order.forEach(function (o, k) {
+      var delay = k * STEP;
+      if (o.s === 0) {
+        var child = el.children[o.r];
+        if (!child) return;
+        child.style.opacity = '0';
+        flyTo(src, rectOf(child), null, delay, function () { tickSound(); });
+        setTimeout(function () { child.style.opacity = ''; }, delay + FLY);
+      } else {
+        var host = $(bubbleHostId(o.s));
+        if (!host) return;
+        var hr = host.getBoundingClientRect();
+        flyTo(src, { cx: hr.left + hr.width / 2, cy: hr.top + hr.height / 2, w: 26, h: 38, angle: 0 }, null, delay, function () { tickSound(); });
+      }
+    });
+  }
+  // Lá vừa đánh bay từ tay người chơi (hoặc avatar đối thủ) vào giữa bàn
+  function playFlight(seat, trick) {
+    var kids = Array.prototype.slice.call(trick.children);
+    kids.forEach(function (child, i) {
+      var src = (seat === 0 && playSrcRects && playSrcRects[i]) ? playSrcRects[i] : null;
+      if (!src) {
+        var host = $(bubbleHostId(seat));
+        if (!host) return;
+        var hr = host.getBoundingClientRect();
+        src = { cx: hr.left + hr.width / 2, cy: hr.top + hr.height / 2 };
+      }
+      child.style.opacity = '0';
+      flyTo(src, rectOf(child), child.outerHTML, i * 40, function () { child.style.opacity = ''; });
+    });
+    playSrcRects = null;
   }
   var tlRoundNo = 0, tlOpen = false, tlSortMode = 'rank', tlHintList = null, tlHintIdx = 0, tlHintKey = '', tlTrickKey = '';
   var TL_SUIT_RANK = [1, 2, 3, 0];
@@ -2923,12 +3015,17 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
       '<div class="tl-nm">' + esc(tlOrder[0].name) + '</div></div>' +
       '<span class="tl-count">' + tg.players[0].hand.length + '</span>';
 
+    // Bỏ lượt: nhãn nhỏ cạnh avatar, mờ dần sau ~1 giây
+    var passNow = tg.top ? Object.keys(tg.passed || {}).filter(function (k) { return tg.passed[k]; }) : [];
+    if (tg.top && lastPassRound === tlRoundNo) passNow.forEach(function (k) { if (!lastPassSet[k]) showPassLabel(+k); });
+    lastPassSet = {}; passNow.forEach(function (k) { lastPassSet[k] = true; }); lastPassRound = tlRoundNo;
     if (tg.top) {
       $('tlLabel').textContent = tg.players[tg.top.seat].name + ' đánh ' + tlDescribe(tg.top.combo);
       var tkey = tg.top.seat + ':' + tg.top.combo.cards.map(function (c) { return c.id; }).join(',');
       if (tkey !== tlTrickKey) {
         tlTrickKey = tkey;
         $('tlTrick').innerHTML = tg.top.combo.cards.map(function (c, i) { return tlCardHTML(c, '', tlPileAttrs(c, i, tg.top.seat)); }).join('');
+        playFlight(tg.top.seat, $('tlTrick'));
       }
     } else if (!tg.over) {
       $('tlLabel').textContent = 'Bàn trống. ' + tg.players[tg.turn].name + ' mở bàn';
@@ -3159,10 +3256,15 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
   });
   $('tlPlay').addEventListener('click', function () {
     if (!tg) return;
-    if (online) { onlineAct({ type: 'play', ids: tg.players[0].hand.filter(function (c) { return tlSel[c.id]; }).map(function (c) { return c.id; }) }); return; }
+    if (online) {
+      playSrcRects = Array.prototype.map.call(document.querySelectorAll('#tlHand .tlc.on'), function (el) { return rectOf(el); });
+      onlineAct({ type: 'play', ids: tg.players[0].hand.filter(function (c) { return tlSel[c.id]; }).map(function (c) { return c.id; }) });
+      return;
+    }
     var ids = tg.players[0].hand.filter(function (c) { return tlSel[c.id]; }).map(function (c) { return c.id; });
     var err = TL.play(tg, 0, ids);
     if (err) { tlFlash = err; renderGame(); return; }
+    playSrcRects = Array.prototype.map.call(document.querySelectorAll('#tlHand .tlc.on'), function (el) { return rectOf(el); });
     tlSel = {}; tlFlash = '';
     renderGame(); tlSchedule();
   });
