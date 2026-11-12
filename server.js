@@ -64,7 +64,7 @@ function viewFor(room, me) {
     const players = [0, 1, 2, 3].map(p => ({ seat: p, name: '', bot: false, out: true, place: 0, hand: [], absent: true }));
     gm.players.forEach((p, j) => {
       players[P(j)] = { seat: P(j), name: p.name, bot: false, out: p.out, place: p.place,
-        hand: j === meE ? p.hand : p.hand.map(() => ({ id: -1, r: 0, s: 0 })) };
+        hand: (j === meE || gm.over) ? p.hand : p.hand.map(() => ({ id: -1, r: 0, s: 0 })) };
     });
     v.tg = {
       players,

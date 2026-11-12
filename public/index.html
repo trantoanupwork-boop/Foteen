@@ -795,6 +795,18 @@ button, [data-tlid], [data-react], [id^="tlOpp"] .tl-fb, [id^="phOpp"] .tl-fb, [
 #tlHand.dealing > .tlc, #phHand.dealing > .tlc { animation: dealIn .3s ease-out backwards; }
 /* Bài tranh trên bàn ngang điện thoại: nhỏ hơn để tay bài không chiếm hết khu vực */
 body:has(#gamePane.stage) #tlBoard #tlHand .tlc.art { width: 44px; }
+/* Tiền bay từ avatar, bàn gọn sau ván */
+.fx-money { position: fixed; transform: translate(-50%, -50%); z-index: 9000; font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 2px 0 #000; white-space: nowrap; pointer-events: none; animation: moneyUp 2.4s ease-out forwards; }
+.fx-money.pos { color: #7CFC9A; }
+.fx-money.neg { color: #FF8A80; }
+@keyframes moneyUp { 0% { opacity: 0; transform: translate(-50%, -50%) translateY(10px) scale(.6); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -50%) translateY(-70px); } }
+#tlBoard .ready-mid, #phBoard .ready-mid { top: 50%; left: auto; right: 6px; bottom: auto; transform: translateY(-50%); width: auto; max-width: 62%; padding: 6px 10px; }
+#tlBoard .ready-mid .ready-box, #phBoard .ready-mid .ready-box { margin: 0; padding: 0; border: 0; }
+#tlBoard .ready-mid .tl-row, #phBoard .ready-mid .tl-row { margin-top: 4px; }
+#tlBoard #tlResult, #phBoard #phResult { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 35; width: auto; padding: 6px 10px; box-shadow: 0 3px 0 var(--shadow); }
+.tl-mini { margin: 0; font-size: 13px; }
+/* Căn tay bài ra giữa bàn ngang */
+body:has(#gamePane.stage) #tlBoard #tlHand { position: relative; top: -50px; }
 </style>
 <script>
 // Phỏm miền Nam — engine thuần (không DOM). Dùng được trong trình duyệt và Node.
@@ -2611,6 +2623,27 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
     if (seat === 0) return pre + 'Me';
     return pre + 'Opp' + (seat === 2 ? 'Top' : seat === 1 ? 'Left' : 'Right');
   }
+  // Tiền cộng/trừ bay lên từ avatar sau mỗi ván
+  var moneyFxKey = '';
+  function showMoneyFx(nets, key) {
+    if (moneyFxKey === key) return;
+    moneyFxKey = key;
+    Object.keys(nets).forEach(function (k) {
+      var v = nets[k], seat = +k;
+      if (!v) return;
+      var host = $(bubbleHostId(seat));
+      if (!host) return;
+      var el = document.createElement('div');
+      el.className = 'fx-money ' + (v > 0 ? 'pos' : 'neg');
+      el.textContent = (v > 0 ? '+' : '') + v + 'k ' + (v > 0 ? '🤑' : '😭');
+      // Gắn vào body theo tọa độ màn hình: việc vẽ lại avatar không xóa được số tiền
+      var r = host.getBoundingClientRect();
+      el.style.left = (r.left + r.width / 2) + 'px';
+      el.style.top = (r.top + r.height / 2) + 'px';
+      document.body.appendChild(el);
+      setTimeout(function () { el.remove(); }, 2600);
+    });
+  }
   var REACTS = [
     { k: 'slap', icon: '👋', stamp: 'BỐP!', cls: 'slap' },
     { k: 'hammer', icon: '🔨', stamp: 'KENG!', cls: 'hammer' },
@@ -2935,13 +2968,8 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
 
     if (tg.over) {
       var st = TL.settle(tg, state.rates);
-      $('tlResult').innerHTML = '<h2>Kết quả: ' + esc(tg.players[st.winner].name) + ' nhất</h2>' +
-        '<ul>' + tg.finished.map(function (seat, i) { return '<li>' + TL.PLACE[i] + ': ' + esc(tg.players[seat].name) + '</li>'; }).join('') + '</ul>' +
-        '<p><b>Tiền cộng trừ</b></p><ul>' + tg.players.map(function (p, i) {
-          var v = st.nets[i];
-          return '<li class="' + (v > 0 ? 'tl-pos' : v < 0 ? 'tl-neg' : '') + '">' + esc(p.name) + ': ' + (v > 0 ? '+' : '') + v + 'k</li>';
-        }).join('') + '</ul>' +
-        (st.lines.length ? '<ul>' + st.lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' : '') +
+      showMoneyFx(st.nets, 'tl' + tlRoundNo);
+      $('tlResult').innerHTML = '<p class="tl-mini"><b>' + esc(tg.players[st.winner].name) + ' nhất</b></p>' +
         '<div class="tl-row tl-actions"><button class="btn primary" id="tlRecord" type="button"' + (tlRecorded ? ' disabled' : '') + '>' +
         (tlRecorded ? 'Đã ghi vào sổ' : 'Ghi vào sổ') + '</button></div>';
     } else {
@@ -3027,14 +3055,14 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
   function readyHTML() {
     var setup = online && curGame !== 'phom' ? tlOrder : tlFixSetup();
     var left = Math.max(0, Math.ceil((rdy.deadline - Date.now()) / 1000));
-    return '<div class="ready-box">' + gameSummaryHTML() + '<p><b>Ván mới sẽ chia sau <span id="readyCount">' + left + '</span> giây</b></p>' +
-      '<ul>' + setup.map(function (s, i) {
-        return '<li>' + esc(s.name || 'Ghế') + ': ' + (rdy.ready[i] ? 'sẵn sàng' : 'chưa sẵn sàng') + '</li>';
-      }).join('') + '</ul>' +
+    return '<div class="ready-box"><p class="tl-mini">Ván mới sau <span id="readyCount">' + left + '</span>s · ' +
+      setup.map(function (s, i) { return esc(s.name || 'Ghế') + (rdy.ready[i] ? ' ✓' : ''); }).join(' · ') + '</p>' +
       '<div class="tl-row tl-actions"><button class="btn primary" id="readyBtn" type="button"' + (rdy.ready[0] ? ' disabled' : '') + '>Sẵn sàng</button></div></div>';
   }
   function renderReady() {
     var on = curGame === 'phom';
+    if (rdy.on && curGame !== 'phom' && tg && tg.over) showMoneyFx(TL.settle(tg, state.rates).nets, 'tl' + tlRoundNo);
+    if (rdy.on && curGame === 'phom' && pg && pg.over) showMoneyFx(phomSettle(pg, state.rates).nets, 'ph' + tlRoundNo);
     var host = $(on ? 'readyMidPh' : 'readyMidTl'), other = $(on ? 'readyMidTl' : 'readyMidPh');
     if (other) { other.hidden = true; other.innerHTML = ''; }
     if (!host) return;
