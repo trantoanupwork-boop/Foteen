@@ -3017,7 +3017,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
   }
   function onlineFail(d) { toast((d && d.error) || 'Không kết nối được máy chủ, thử lại nhé.'); }
   function onlineCreate() {
-    postJSON('/api/room', {}).then(function (r) { if (r.ok) onlineJoin(r.data.code); else onlineFail(r.data); })
+    postJSON('/api/room', { mode: tlGameMode }).then(function (r) { if (r.ok) onlineJoin(r.data.code); else onlineFail(r.data); })
       .catch(function () { onlineFail(null); });
   }
   function onlineJoin(code) {
@@ -3442,7 +3442,14 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
   });
   $('tlStart').addEventListener('click', tlStartGame);
   document.querySelectorAll('[data-tlgm]').forEach(function (b) {
-    b.addEventListener('click', function () { tlGameMode = b.getAttribute('data-tlgm'); renderGame(); });
+    b.addEventListener('click', function () {
+      var m = b.getAttribute('data-tlgm');
+      if (online && online.view) { // đang ở phòng online: chỉ chủ phòng đổi, máy chủ giữ chế độ
+        if (!online.view.isHost) { toast('Chỉ chủ phòng mới đổi được chế độ.'); return; }
+        onlineAct({ type: 'mode', mode: m }); return;
+      }
+      tlGameMode = m; renderGame();
+    });
   });
   $('tlHand').addEventListener('click', function (e) {
     var b = e.target.closest('[data-tlid]');

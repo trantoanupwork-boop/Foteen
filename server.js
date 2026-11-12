@@ -29,9 +29,9 @@ function makeCode() {
     if (!ROOMS.has(c)) return c;
   }
 }
-function newRoom() {
+function newRoom(mode) {
   const code = makeCode();
-  const room = { code, seats: [null, null, null, null], phase: 'lobby', mode: 'het', roundNo: 0,
+  const room = { code, seats: [null, null, null, null], phase: 'lobby', mode: mode === 'dem' ? 'dem' : 'het', roundNo: 0,
     gm: null, order: null, deadline: 0, turnTO: null, rdy: null, rdyTO: null,
     clients: new Set(), chatTimes: [], last: Date.now(), offTO: [null, null, null, null], lastWinner: null, host: null };
   ROOMS.set(code, room);
@@ -259,6 +259,12 @@ function handleAct(room, seat, msg) {
       broadcastEvent(room, 'react', me => ({ from: slotOfReal(room, me, seat), to: slotOfReal(room, me, toReal), kind }));
       return null;
     }
+    case 'mode': { // chủ phòng chọn chế độ trong sảnh; ván đang chơi không đổi được
+      if (room.phase !== 'lobby') return 'Chỉ đổi chế độ khi đang ở sảnh.';
+      if (seat !== room.host) return 'Chỉ chủ phòng mới đổi được chế độ.';
+      room.mode = msg.mode === 'dem' ? 'dem' : 'het';
+      broadcastView(room); return null;
+    }
     case 'leave': {
       if (room.phase === 'play') { dropFromGame(room, seat, 'leave'); return null; }
       if (room.phase === 'ready') { leaveReady(room, seat); return null; }
@@ -299,7 +305,7 @@ const server = http.createServer((req, res) => {
     return stream.pipe(res);
   }
   if (req.method === 'POST' && url.pathname === '/api/room') {
-    return json(res, 200, { code: newRoom().code });
+    return readBody(req, body => json(res, 200, { code: newRoom(body && body.mode).code }));
   }
   if (req.method === 'POST' && url.pathname === '/api/join') {
     return readBody(req, body => {
