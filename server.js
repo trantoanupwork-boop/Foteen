@@ -79,12 +79,12 @@ function viewFor(room, me) {
       first: gm.first,
       finished: gm.finished.map(m),
       cuts: gm.cuts.map(c => ({ cutter: m(c.cutter), victim: m(c.victim), cards: c.cards })),
-      over: gm.over && !hold, mode: gm.mode,
+      over: gm.over && !hold, hold: hold, trangType: gm.trangType || null, mode: gm.mode,
       trang: gm.trang == null ? null : m(gm.trang),
       fair: { gameId: room.fair.gameId, commit: room.fair.commit, reveal: room.fair.reveal }
     };
   }
-  if (room.rdy) v.rdy = { ready: slots.map(r => (r == null ? false : !!room.rdy.ready[r])), left: Math.max(0, room.rdy.deadline - Date.now()) };
+  if (room.rdy) v.rdy = { ready: slots.map(r => (r == null ? false : !!room.rdy.ready[r])), left: Math.max(0, room.rdy.deadline - Date.now()), until: room.rdy.deadline, now: Date.now() };
   return v;
 }
 function send(client, event, data) {
@@ -100,10 +100,18 @@ function broadcastEvent(room, event, build) {
 }
 
 // ----- Luật chơi trên máy chủ -----
+// Thắng trắng (khi chia bài): mọi người xem toàn bộ bài 3 giây trước khi sang bước chuẩn bị ván mới
+const TRANG_MS = 3000;
+
+// Bắt đầu ván: chỉ chia một lần cho mỗi ván; thứ tự ván = những ghế đang có người
 function startGame(room) {
+  if (room.phase === 'play') return;
   clearTimeout(room.rdyTO); room.rdyTO = null; room.rdy = null;
-  // Thứ tự ván = những ghế đang có người (người đã rời bàn không vào lại)
   room.order = [0, 1, 2, 3].filter(i => room.seats[i]);
+  if (room.order.length < 2) { // không đủ người (có thể do rời bàn lúc đếm ngược): về sảnh
+    room.phase = 'lobby'; room.gm = null; room.order = null;
+    broadcastView(room); return;
+  }
   room.phase = 'play';
   room.hold = false; room.finalShown = false;
   room.roundNo++;
@@ -117,10 +125,12 @@ function afterMove(room) {
   const gm = room.gm;
   if (gm.over && !room.finalShown) {
     room.finalShown = true;
-    if (gm.lastPlay) { // giữ lá cuối trên bàn một lúc rồi mới sang kết quả
+    // Giữ hiển thị một lúc trước khi sang kết quả: lá cuối (ván thường) hoặc bài các người (thắng trắng)
+    const ms = gm.lastPlay ? FINAL_TRICK_MS : (gm.trang != null ? TRANG_MS : 0);
+    if (ms) {
       room.hold = true; room.deadline = 0;
       broadcastView(room);
-      room.holdTO = setTimeout(() => { room.hold = false; afterMove(room); }, FINAL_TRICK_MS);
+      room.holdTO = setTimeout(() => { room.hold = false; afterMove(room); }, ms);
       return;
     }
   }
@@ -131,12 +141,13 @@ function afterMove(room) {
     console.log(`[fair] phòng ${room.code} ván ${room.fair.gameId} reveal ${room.fair.reveal} (kiểm: ${sha256hex(room.fair.secret) === room.fair.commit})`);
     room.deadline = 0;
     if (room.seats.filter(Boolean).length >= 2) {
+      // Tự động: đếm ngược READY_MS (mặc định 10 giây) rồi chia ván mới, không cần bấm gì
       room.phase = 'ready';
-      room.rdy = { ready: [false, false, false, false], deadline: Date.now() + READY_MS };
+      room.rdy = { ready: [true, true, true, true], deadline: Date.now() + READY_MS };
       room.deadline = room.rdy.deadline;
       room.rdyTO = setTimeout(() => startGame(room), READY_MS);
     } else { // còn dưới 2 người: về sảnh chờ
-      room.phase = 'lobby'; room.rdy = null;
+      room.phase = 'lobby'; room.rdy = null; // giữ kết quả ván vừa xong để người còn lại vẫn xem được
       room.seats.forEach(s => { if (s) s.ready = false; });
     }
   } else {
@@ -145,20 +156,31 @@ function afterMove(room) {
   broadcastView(room);
 }
 
-// Rời bàn giữa ván: loại người đó, xóa bài còn trên tay, cắt ghế để không vào lại được
-function dropFromGame(room, seat, reason) {
-  if (room.phase !== 'play' || !room.gm || !room.order || !room.order.includes(seat)) return false;
-  clearTimeout(room.offTO[seat]); room.offTO[seat] = null;
-  if (!TL.removePlayer(room.gm, room.order.indexOf(seat))) return false;
-  if (room.gm.over) room.finalShown = true; // ván kết thúc vì người rời bàn: không có lá cuối để giữ
+// Tách ghế khỏi bàn: cắt ghế (không vào lại được) và báo người đó rời bàn
+function detachSeat(room, seat, reason) {
   room.seats[seat] = null;
+  clearTimeout(room.offTO[seat]); room.offTO[seat] = null;
   room.clients.forEach(c => {
     if (c.seat !== seat) return;
     send(c, 'out', { reason });
     room.clients.delete(c);
     try { c.res.end(); } catch (e) {}
   });
+}
+// Rời bàn giữa ván: loại người đó, xóa bài còn trên tay
+function dropFromGame(room, seat, reason) {
+  if (room.phase !== 'play' || !room.gm || !room.order || !room.order.includes(seat)) return false;
+  if (!TL.removePlayer(room.gm, room.order.indexOf(seat))) return false;
+  if (room.gm.over) room.finalShown = true; // ván kết thúc vì người rời bàn: không có lá cuối để giữ
+  detachSeat(room, seat, reason);
   afterMove(room);
+  return true;
+}
+// Rời bàn lúc đếm ngược ván mới: ván kế tiếp sẽ chia theo danh sách người còn lại
+function leaveReady(room, seat) {
+  if (room.phase !== 'ready' || !room.order || !room.order.includes(seat)) return false;
+  detachSeat(room, seat, 'leave');
+  broadcastView(room);
   return true;
 }
 
@@ -186,11 +208,7 @@ function handleAct(room, seat, msg) {
     case 'ready': {
       const on = msg.on !== false;
       if (room.phase === 'lobby') { room.seats[seat].ready = on; broadcastView(room); return null; }
-      if (room.phase === 'ready' && room.rdy && room.order.includes(seat)) {
-        room.rdy.ready[seat] = true;
-        if (room.order.every(r => !room.seats[r] || room.rdy.ready[r])) startGame(room); else broadcastView(room);
-        return null;
-      }
+      if (room.phase === 'ready') return null; // ván mới tự bắt đầu sau đếm ngược, không cần bấm
       return 'Chưa thể sẵn sàng lúc này.';
     }
     case 'chat': {
@@ -214,6 +232,7 @@ function handleAct(room, seat, msg) {
     }
     case 'leave': {
       if (room.phase === 'play') { dropFromGame(room, seat, 'leave'); return null; }
+      if (room.phase === 'ready') { leaveReady(room, seat); return null; }
       if (room.phase !== 'lobby') return 'Đang chơi, không thể rời ghế.';
       room.seats[seat] = null;
       room.seats.forEach(s => { if (s) s.ready = false; });

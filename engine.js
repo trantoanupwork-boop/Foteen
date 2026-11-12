@@ -480,11 +480,17 @@ function newGame(mode, names, lead, rng) {
     starter = low ? low.seat : 0; first = false;
   }
   var g = { players: players, turn: starter, top: null, passed: {}, first: first, finished: [], cuts: [], over: false, mode: mode || 'het' };
-  // Thắng trắng: chia bài có tứ quý 2 thì thắng ngay, ván kết thúc trước khi ai đánh
+  // Thắng trắng ngay khi chia, không cần đánh: có tứ quý 2, hoặc có 6 đôi (tứ quý tính là 2 đôi).
+  // Nếu nhiều người cùng đủ điều kiện thì lấy người ngồi trước theo thứ tự ghế.
   players.forEach(function (p) {
-    if (p.hand.filter(function (c) { return c.r === 12; }).length === 4) {
-      g.trang = p.seat; g.over = true; g.finished = [p.seat]; g.turn = null; g.top = null; p.place = 1;
-    }
+    if (g.trang !== undefined && g.trang !== null) return;
+    var twos = p.hand.filter(function (c) { return c.r === 12; }).length;
+    var cnt = {};
+    p.hand.forEach(function (c) { cnt[c.r] = (cnt[c.r] || 0) + 1; });
+    var pairs = 0;
+    Object.keys(cnt).forEach(function (r) { pairs += Math.floor(cnt[r] / 2); });
+    var type = twos === 4 ? 'tu2' : (pairs >= 6 ? 'doi6' : null);
+    if (type) { g.trang = p.seat; g.trangType = type; g.over = true; g.finished = [p.seat]; g.turn = null; g.top = null; p.place = 1; }
   });
   return g;
 }
