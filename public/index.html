@@ -1582,7 +1582,9 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
   var tlChops = [];   // các lần chặt heo của ván tiến lên
   var toastTimer = null;
 
-  function uid() { return Math.random().toString(36).slice(2, 8); }
+  // Số ngẫu nhiên cho giao diện (avatar, lời bot, mã phòng): dùng CSPRNG, không dùng Math.random
+  function csRand() { return Phom.cryptoRng(1000000000) / 1000000000; }
+  function uid() { return Math.floor(csRand() * 2176782336).toString(36).slice(0, 6); }
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -1590,7 +1592,7 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
   }
   function fmt(n) { return String(n).replace('-', '−'); }
   function fmtSigned(n) { return n > 0 ? '+' + n : fmt(n); }
-  function pickOne(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function pickOne(a) { return a[Math.floor(csRand() * a.length)]; }
   var $ = function (id) { return document.getElementById(id); };
 
   function defAv(i) {
@@ -1602,7 +1604,7 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
     var a = { v: 2 };
     PARTS.forEach(function (part) {
       if (part.color) a[part.k] = pickOne(part.color)[0];
-      else if (part.multi) a[part.k] = part.opts.filter(function (o) { return Math.random() < (o[0] === 'ma_hong' ? 0.5 : 0.25); }).map(function (o) { return o[0]; });
+      else if (part.multi) a[part.k] = part.opts.filter(function (o) { return csRand() < (o[0] === 'ma_hong' ? 0.5 : 0.25); }).map(function (o) { return o[0]; });
       else a[part.k] = pickOne(part.opts)[0];
     });
     return a;
@@ -2921,7 +2923,7 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
   }
   function botSay(seat, text) {
     var name = tlOrder[seat] ? tlOrder[seat].name : 'Máy';
-    chatTimers.push(setTimeout(function () { chatAdd(name, text, false); showBubble(seat, text); }, 500 + Math.random() * 900));
+    chatTimers.push(setTimeout(function () { chatAdd(name, text, false); showBubble(seat, text); }, 500 + csRand() * 900));
   }
   function chatClear() {
     chatTimers.forEach(clearTimeout); chatTimers = []; chatLog = []; bubbles = {}; reactOpen = null; reactFx = null; renderChat(); renderBubbles();
@@ -2941,9 +2943,9 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
     if (online) { onlineAct({ type: 'chat', text: text }); return; }
     chatAdd(tlOrder[0] ? tlOrder[0].name : 'Bạn', text, true);
     showBubble(0, text);
-    var seat = 1 + Math.floor(Math.random() * 3);
+    var seat = 1 + Math.floor(csRand() * 3);
     chatTimers.push(setTimeout(function () {
-      botSay(seat, BOT_LINES[Math.floor(Math.random() * BOT_LINES.length)]);
+      botSay(seat, BOT_LINES[Math.floor(csRand() * BOT_LINES.length)]);
     }, 900));
   });
 
