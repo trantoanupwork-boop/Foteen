@@ -515,9 +515,9 @@ function advance(gm, seat) {
     gm.over = true; gm.top = null; gm.turn = null;
     return;
   }
-  if (gm.finished.length >= gm.players.length - 1) {
+  if (active.length <= 1) {
     var last = active[0];
-    if (last) { last.place = gm.players.length; gm.finished.push(last.seat); }
+    if (last) { last.place = gm.finished.length + 1; gm.finished.push(last.seat); }
     gm.over = true; gm.top = null; gm.turn = null;
     return;
   }
@@ -563,6 +563,29 @@ function pass(gm, seat) {
   return null;
 }
 
+// Người chơi rời bàn giữa ván (chủ động, hoặc mất kết nối quá lâu).
+// Loại khỏi ván, xóa bài còn trên tay người đó. Không chia lại, không đổi bài người khác,
+// không tự đánh thay. Các lá đã đánh vẫn ở trên bàn và trong gm.cuts.
+function removePlayer(gm, seat) {
+  var p = gm.players[seat];
+  if (gm.over || !p || p.out) return false;
+  p.out = true;
+  p.hand = [];
+  delete gm.passed[seat];
+  var has3 = gm.players.some(function (q) { return !q.out && q.hand.some(function (c) { return c.r === 0 && c.s === 3; }); });
+  if (gm.first && !has3) gm.first = false; // 3 bích đã theo người rời bàn: không còn bắt buộc
+  var active = gm.players.filter(function (q) { return !q.out; });
+  if (active.length <= 1) { // 2 người: người còn lại thắng ngay; nhiều người: hết người để chơi
+    if (active[0]) { active[0].place = gm.finished.length + 1; gm.finished.push(active[0].seat); }
+    gm.over = true; gm.top = null; gm.turn = null;
+    return true;
+  }
+  if (gm.turn === seat) {
+    advance(gm, seat); // chuyển lượt theo chiều kim đồng hồ
+    if (gm.turn === seat) gm.turn = nextActive(gm, seat);
+  }
+  return true;
+}
 function candidates(hand, top, first) {
   var out = [], byR = {};
   hand.forEach(function (c) { (byR[c.r] = byR[c.r] || []).push(c); });
@@ -654,6 +677,6 @@ function settle(gm, rates) {
   return { nets: nets, lines: lines, winner: winner };
 }
 
-return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates: candidates, settle: settle, detect: detect, beats: beats, RANKS: RANKS, SUITS: SUITS, isRed: isRed, cardName: cardName, TYPE_LABEL: TYPE_LABEL, PLACE: PLACE };
+return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, botMove: botMove, candidates: candidates, settle: settle, detect: detect, beats: beats, RANKS: RANKS, SUITS: SUITS, isRed: isRed, cardName: cardName, TYPE_LABEL: TYPE_LABEL, PLACE: PLACE };
 })();
 module.exports = { Phom: Phom, TL: TL };

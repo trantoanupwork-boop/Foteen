@@ -8,7 +8,8 @@ const { makeFairRng, newFair, sha256hex } = require('./fair.js');
 
 const PORT = process.env.PORT || 3000;
 const PUB = path.join(__dirname, 'public');
-const TURN_MS = +process.env.TURN_MS || 120000;
+// Mất kết nối quá lâu khi đang chơi thì người đó bị loại khỏi ván (không có AI tiếp quản)
+const DISCONNECT_MS = +process.env.DISCONNECT_MS || 60000;
 const READY_MS = +process.env.READY_MS || 10000;
 const ROOM_IDLE_MS = 3 * 60 * 60 * 1000;
 const KINDS = ['slap', 'hammer', 'egg', 'kiss'];
@@ -28,7 +29,7 @@ function newRoom() {
   const code = makeCode();
   const room = { code, seats: [null, null, null, null], phase: 'lobby', mode: 'het', roundNo: 0,
     gm: null, order: null, deadline: 0, turnTO: null, rdy: null, rdyTO: null,
-    clients: new Set(), chatTimes: [], last: Date.now() };
+    clients: new Set(), chatTimes: [], last: Date.now(), offTO: [null, null, null, null], lastWinner: null };
   ROOMS.set(code, room);
   return room;
 }
@@ -97,39 +98,53 @@ function broadcastEvent(room, event, build) {
 // ----- Luật chơi trên máy chủ -----
 function startGame(room) {
   clearTimeout(room.rdyTO); room.rdyTO = null; room.rdy = null;
-  if (room.phase === 'lobby') room.order = [0, 1, 2, 3].filter(i => room.seats[i]);
+  // Thứ tự ván = những ghế đang có người (người đã rời bàn không vào lại)
+  room.order = [0, 1, 2, 3].filter(i => room.seats[i]);
   room.phase = 'play';
   room.roundNo++;
   room.fair = newFair();
   console.log(`[fair] phòng ${room.code} ván ${room.fair.gameId} commit ${room.fair.commit}`);
-  room.gm = TL.newGame(room.mode, room.order.map(r => room.seats[r].name), room.lastWinner, makeFairRng(room.fair.secret));
+  const lead = room.lastWinner == null ? -1 : room.order.indexOf(room.lastWinner);
+  room.gm = TL.newGame(room.mode, room.order.map(r => room.seats[r].name), lead, makeFairRng(room.fair.secret));
   afterMove(room);
 }
 function afterMove(room) {
-  clearTimeout(room.turnTO); room.turnTO = null;
   const gm = room.gm;
   if (gm.over) {
-    room.lastWinner = gm.finished[0];
+    room.offTO.forEach((t, i) => { clearTimeout(t); room.offTO[i] = null; });
+    room.lastWinner = room.order[gm.finished[0]];
     room.fair.reveal = room.fair.secret.toString('hex');
     console.log(`[fair] phòng ${room.code} ván ${room.fair.gameId} reveal ${room.fair.reveal} (kiểm: ${sha256hex(room.fair.secret) === room.fair.commit})`);
-    room.phase = 'ready';
-    room.rdy = { ready: [false, false, false, false], deadline: Date.now() + READY_MS };
-    room.deadline = room.rdy.deadline;
-    room.rdyTO = setTimeout(() => startGame(room), READY_MS);
-  } else if (gm.turn !== null) {
-    room.deadline = Date.now() + TURN_MS;
-    room.turnTO = setTimeout(() => autoTurn(room), TURN_MS);
+    room.deadline = 0;
+    if (room.seats.filter(Boolean).length >= 2) {
+      room.phase = 'ready';
+      room.rdy = { ready: [false, false, false, false], deadline: Date.now() + READY_MS };
+      room.deadline = room.rdy.deadline;
+      room.rdyTO = setTimeout(() => startGame(room), READY_MS);
+    } else { // còn dưới 2 người: về sảnh chờ
+      room.phase = 'lobby'; room.rdy = null;
+      room.seats.forEach(s => { if (s) s.ready = false; });
+    }
+  } else {
+    room.deadline = 0; // không có đồng hồ lượt: người không online thì bị loại theo DISCONNECT_MS
   }
   broadcastView(room);
 }
-function autoTurn(room) {
-  const gm = room.gm;
-  if (!gm || gm.over || gm.turn === null) return;
-  const seat = gm.turn;
-  const ids = TL.botMove(gm, seat);
-  const err = ids ? TL.play(gm, seat, ids) : TL.pass(gm, seat);
-  if (err) TL.pass(gm, seat);
+
+// Rời bàn giữa ván: loại người đó, xóa bài còn trên tay, cắt ghế để không vào lại được
+function dropFromGame(room, seat, reason) {
+  if (room.phase !== 'play' || !room.gm || !room.order || !room.order.includes(seat)) return false;
+  clearTimeout(room.offTO[seat]); room.offTO[seat] = null;
+  if (!TL.removePlayer(room.gm, room.order.indexOf(seat))) return false;
+  room.seats[seat] = null;
+  room.clients.forEach(c => {
+    if (c.seat !== seat) return;
+    send(c, 'out', { reason });
+    room.clients.delete(c);
+    try { c.res.end(); } catch (e) {}
+  });
   afterMove(room);
+  return true;
 }
 
 function handleAct(room, seat, msg) {
@@ -158,7 +173,7 @@ function handleAct(room, seat, msg) {
       if (room.phase === 'lobby') { room.seats[seat].ready = on; broadcastView(room); return null; }
       if (room.phase === 'ready' && room.rdy && room.order.includes(seat)) {
         room.rdy.ready[seat] = true;
-        if (room.order.every(r => room.rdy.ready[r])) startGame(room); else broadcastView(room);
+        if (room.order.every(r => !room.seats[r] || room.rdy.ready[r])) startGame(room); else broadcastView(room);
         return null;
       }
       return 'Chưa thể sẵn sàng lúc này.';
@@ -183,6 +198,7 @@ function handleAct(room, seat, msg) {
       return null;
     }
     case 'leave': {
+      if (room.phase === 'play') { dropFromGame(room, seat, 'leave'); return null; }
       if (room.phase !== 'lobby') return 'Đang chơi, không thể rời ghế.';
       room.seats[seat] = null;
       room.seats.forEach(s => { if (s) s.ready = false; });
@@ -248,6 +264,7 @@ const server = http.createServer((req, res) => {
     if (!room || seat < 0) return json(res, 403, { error: 'Không vào được phòng.' });
     res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive' });
     const client = { res, seat };
+    clearTimeout(room.offTO[seat]); room.offTO[seat] = null;
     room.clients.add(client);
     room.seats[seat].clients.add(client);
     send(client, 'view', viewFor(room, seat));
@@ -256,6 +273,14 @@ const server = http.createServer((req, res) => {
       clearInterval(ping);
       room.clients.delete(client);
       if (room.seats[seat]) room.seats[seat].clients.delete(client);
+      // Đang chơi và ghế này không còn kết nối nào: sau DISCONNECT_MS thì loại khỏi ván
+      if (room.seats[seat] && room.seats[seat].clients.size === 0 && room.phase === 'play') {
+        clearTimeout(room.offTO[seat]);
+        room.offTO[seat] = setTimeout(() => {
+          room.offTO[seat] = null;
+          if (room.seats[seat] && room.seats[seat].clients.size === 0) dropFromGame(room, seat, 'disconnect');
+        }, DISCONNECT_MS);
+      }
       broadcastView(room);
     });
     return;
