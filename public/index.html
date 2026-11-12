@@ -824,6 +824,12 @@ body:has(#gamePane.stage) #tlBoard #tlHand .tlc.art { width: 44px; }
 #tlBoard .tl-hwrap #tlHand { flex: none; }
 #tlBoard .tl-pp-row { display: flex; gap: 12px; justify-content: center; align-items: center; padding: 0 0 8px; }
 #tlBoard .tl-pp-row .tl-side { flex: none; }
+/* Điện thoại dọc (bàn đã xoay): nút nằm ở đầu bộ bài, xếp thành cột */
+@media (orientation: portrait) {
+  body:has(#gamePane.stage) #tlBoard .tl-hwrap { flex-direction: row; align-items: flex-end; }
+  body:has(#gamePane.stage) #tlBoard .tl-hwrap #tlHand { flex: 1; min-width: 0; order: 1; }
+  body:has(#gamePane.stage) #tlBoard .tl-pp-row { order: 2; flex: none; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 10px; padding: 0 0 0 10px; }
+}
 .trick-group { position: absolute; left: 50%; top: 50%; display: flex; gap: 4px; transform: translate(-50%, -50%) translate(calc(var(--gi) * 9px - 12px), calc(var(--gi) * 7px - 10px)); }
 #tlTrick.sweep { opacity: 0; transition: opacity .4s ease-out; }
 @keyframes trickShake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, 2px); } 75% { transform: translate(3px, -2px); } }
