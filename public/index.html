@@ -829,6 +829,7 @@ body:has(#gamePane.stage) #tlBoard #tlHand .tlc.art { width: 44px; }
 .rdy-tag { font-size: 11px; font-weight: 800; color: #fff; border: 2px solid #fff; border-radius: 99px; padding: 1px 8px; white-space: nowrap; box-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
 .rdy-tag.ok { background: #2E8B57; }
 .rdy-tag.no { background: #7A7F86; }
+.rdy-empty { display: block; width: 44px; height: 44px; border-radius: 50%; border: 2px dashed rgba(60, 40, 90, .35); }
 /* Mũi tên chỉ lượt: chỉ có một mũi tên, nằm trên đầu nhân vật đang có lượt */
 #tlBoard .tl-who { position: relative; }
 #tlBoard .tl-who.turn::before { content: ''; position: absolute; left: 50%; bottom: 100%; margin-bottom: 4px; transform: translateX(-50%); width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 13px solid #FFD43B; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); z-index: 6; animation: tlArrowBob .8s ease-in-out infinite; pointer-events: none; }
@@ -3139,9 +3140,11 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
     var mine = v.seats[0];
     var startBtn = '<button class="btn small primary" id="onStart" type="button"' + (v.canStart ? '' : ' disabled') + '>Bắt đầu</button>';
     box.innerHTML = '<div class="online-title">Phòng ' + esc(online.code) + ' · ' + v.seats.filter(Boolean).length + '/4 người</div>' +
-      '<ul class="online-seats">' + v.seats.map(function (s) {
-        return '<li>' + (s ? esc(s.name) + (s.ready ? ' · sẵn sàng' : ' · chưa sẵn sàng') : 'Ghế trống') + '</li>';
-      }).join('') + '</ul>' +
+      '<div class="rdy-row">' + v.seats.map(function (s, i) {
+        if (!s) return '<div class="rdy-seat"><span class="rdy-empty" aria-label="Ghế trống"></span></div>';
+        return '<div class="rdy-seat"><span class="rdy-tag ' + (s.ready ? 'ok' : 'no') + '">' + (s.ready ? 'Sẵn sàng' : 'Chưa sẵn sàng') + '</span>' +
+          fbHTML({ av: (s.av && s.av.b) ? s.av : defAv(i) }) + '<div class="tl-nm">' + esc(s.name) + '</div></div>';
+      }).join('') + '</div>' +
       '<div class="hint-text">Gửi link này cho bạn bè: ' + esc(location.origin + '/?room=' + online.code) + '</div>' +
       '<div class="hint-text">' + (v.canStart ? 'Đủ người, bấm Bắt đầu để chơi.' : 'Cần ít nhất 2 người, và tất cả bấm Sẵn sàng thì mới bắt đầu được.') + '</div>' +
       '<div class="online-row"><button class="btn small" id="onReady" type="button">' + (mine && mine.ready ? 'Hủy sẵn sàng' : 'Sẵn sàng') + '</button>' + startBtn + '<button class="btn small" id="onLeaveRoom" type="button">Rời phòng</button></div>';
