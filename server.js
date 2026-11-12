@@ -33,11 +33,16 @@ function newRoom() {
   const code = makeCode();
   const room = { code, seats: [null, null, null, null], phase: 'lobby', mode: 'het', roundNo: 0,
     gm: null, order: null, deadline: 0, turnTO: null, rdy: null, rdyTO: null,
-    clients: new Set(), chatTimes: [], last: Date.now(), offTO: [null, null, null, null], lastWinner: null };
+    clients: new Set(), chatTimes: [], last: Date.now(), offTO: [null, null, null, null], lastWinner: null, host: null };
   ROOMS.set(code, room);
   return room;
 }
 function seatOf(room, tok) { return room.seats.findIndex(s => s && s.token === tok); }
+// Chủ phòng: người vào đầu tiên. Nếu chủ rời ghế thì chuyển cho người có ghế kế tiếp.
+function ensureHost(room) {
+  if (room.host == null || !room.seats[room.host]) room.host = room.seats.findIndex(s => s);
+  if (room.host < 0) room.host = null;
+}
 function clean(s, max) { return String(s == null ? '' : s).replace(/[\u0000-\u001f]/g, '').trim().slice(0, max); }
 function canStart(room) {
   const seated = room.seats.filter(Boolean);
@@ -58,7 +63,7 @@ function seatInfo(s) { return s ? { name: s.name, av: s.av, ready: !!s.ready, on
 
 function viewFor(room, me) {
   const slots = slotsFor(room, me);
-  const v = { real: me, phase: room.phase, mode: room.mode, roundNo: room.roundNo,
+  const v = { real: me, phase: room.phase, mode: room.mode, roundNo: room.roundNo, isHost: me === room.host, hostSlot: room.host == null ? -1 : slots.indexOf(room.host),
     seats: slots.map(r => (r == null ? null : seatInfo(room.seats[r]))),
     canStart: room.phase === 'lobby' && canStart(room),
     left: Math.max(0, room.deadline - Date.now()), turnUntil: (room.phase === 'play' && room.gm && !room.gm.over && !room.hold) ? room.deadline : 0, serverNow: Date.now() };
@@ -181,6 +186,7 @@ function turnTimeout(room) {
 // Tách ghế khỏi bàn: cắt ghế (không vào lại được) và báo người đó rời bàn
 function detachSeat(room, seat, reason) {
   room.seats[seat] = null;
+  ensureHost(room);
   clearTimeout(room.offTO[seat]); room.offTO[seat] = null;
   room.clients.forEach(c => {
     if (c.seat !== seat) return;
@@ -210,6 +216,7 @@ function handleAct(room, seat, msg) {
   switch (msg.type) {
     case 'start': {
       if (room.phase !== 'lobby') return 'Đang có ván chơi.';
+      if (seat !== room.host) return 'Chỉ chủ phòng mới bấm Bắt đầu được.';
       if (!canStart(room)) return 'Cần ít nhất 2 người, và tất cả phải bấm Sẵn sàng.';
       startGame(room); return null;
     }
@@ -257,6 +264,7 @@ function handleAct(room, seat, msg) {
       if (room.phase === 'ready') { leaveReady(room, seat); return null; }
       if (room.phase !== 'lobby') return 'Đang chơi, không thể rời ghế.';
       room.seats[seat] = null;
+      ensureHost(room);
       room.seats.forEach(s => { if (s) s.ready = false; });
       broadcastView(room);
       return null;
@@ -307,9 +315,12 @@ const server = http.createServer((req, res) => {
         tok = crypto.randomBytes(16).toString('hex');
         const av = body.av && typeof body.av === 'object' && body.av.b ? body.av : {};
         room.seats[seat] = { token: tok, name: clean(body.name, 20) || 'Bạn', av, ready: false, clients: new Set() };
-      } else if (body.name) {
-        room.seats[seat].name = clean(body.name, 20) || room.seats[seat].name;
+      } else {
+        if (body.name) room.seats[seat].name = clean(body.name, 20) || room.seats[seat].name;
+        // Vào lại phòng: cập nhật nhân vật hiện tại của máy này
+        if (body.av && typeof body.av === 'object' && body.av.b) room.seats[seat].av = body.av;
       }
+      ensureHost(room);
       broadcastView(room);
       return json(res, 200, { token: tok, seat });
     });

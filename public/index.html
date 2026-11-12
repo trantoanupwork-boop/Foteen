@@ -3083,7 +3083,10 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
     if (!online) return;
     online.view = v;
     tlOrder = v.seats.map(function (s, i) {
-      return s ? { name: s.name, av: (s.av && s.av.b) ? s.av : defAv(i), pid: null } : { name: 'Trống', av: defAv(i), pid: null };
+      // Ghế của mình: dùng nhân vật đang lưu trên máy này để khớp với phần chọn nhân vật
+      var mine = i === 0 ? meGet() : null;
+      var av0 = mine && mine.av && mine.av.b ? mine.av : null;
+      return s ? { name: s.name, av: av0 || ((s.av && s.av.b) ? s.av : defAv(i)), pid: null } : { name: 'Trống', av: defAv(i), pid: null };
     });
     if (online.lastRound !== v.roundNo) { online.lastRound = v.roundNo; dealPending = true; tlRecorded = false; tlSel = {}; tlHintList = null; }
     tg = v.tg || null;
@@ -3138,15 +3141,16 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
     var v = online.view;
     if (!v) { box.innerHTML = '<div class="online-title">Đang vào phòng ' + esc(online.code) + '...</div>'; return; }
     var mine = v.seats[0];
-    var startBtn = '<button class="btn small primary" id="onStart" type="button"' + (v.canStart ? '' : ' disabled') + '>Bắt đầu</button>';
+    var startBtn = '<button class="btn small primary" id="onStart" type="button"' + (v.canStart && v.isHost ? '' : ' disabled') + '>Bắt đầu</button>';
     box.innerHTML = '<div class="online-title">Phòng ' + esc(online.code) + ' · ' + v.seats.filter(Boolean).length + '/4 người</div>' +
       '<div class="rdy-row">' + v.seats.map(function (s, i) {
         if (!s) return '<div class="rdy-seat"><span class="rdy-empty" aria-label="Ghế trống"></span></div>';
         return '<div class="rdy-seat"><span class="rdy-tag ' + (s.ready ? 'ok' : 'no') + '">' + (s.ready ? 'Sẵn sàng' : 'Chưa sẵn sàng') + '</span>' +
-          fbHTML({ av: (s.av && s.av.b) ? s.av : defAv(i) }) + '<div class="tl-nm">' + esc(s.name) + '</div></div>';
+          fbHTML({ av: (i === 0 && meGet() && meGet().av && meGet().av.b) ? meGet().av : ((s.av && s.av.b) ? s.av : defAv(i)) }) +
+          '<div class="tl-nm">' + esc(s.name) + (i === v.hostSlot ? ' 👑' : '') + '</div></div>';
       }).join('') + '</div>' +
       '<div class="hint-text">Gửi link này cho bạn bè: ' + esc(location.origin + '/?room=' + online.code) + '</div>' +
-      '<div class="hint-text">' + (v.canStart ? 'Đủ người, bấm Bắt đầu để chơi.' : 'Cần ít nhất 2 người, và tất cả bấm Sẵn sàng thì mới bắt đầu được.') + '</div>' +
+      '<div class="hint-text">' + (!v.isHost ? 'Chủ phòng (👑) sẽ bấm Bắt đầu khi đủ người và tất cả đã sẵn sàng.' : v.canStart ? 'Bạn là chủ phòng. Đủ người, bấm Bắt đầu để chơi.' : 'Cần ít nhất 2 người, và tất cả bấm Sẵn sàng thì mới bắt đầu được.') + '</div>' +
       '<div class="online-row"><button class="btn small" id="onReady" type="button">' + (mine && mine.ready ? 'Hủy sẵn sàng' : 'Sẵn sàng') + '</button>' + startBtn + '<button class="btn small" id="onLeaveRoom" type="button">Rời phòng</button></div>';
   }
   $('onlineBox').addEventListener('click', function (e) {
