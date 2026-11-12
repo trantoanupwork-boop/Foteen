@@ -163,8 +163,8 @@ function afterMove(room) {
 }
 
 // Hết thời gian suy nghĩ của lượt: người đang có lượt bị loại khỏi ván (máy không đánh thay)
-// Hết giờ: nếu đang có bài trên bàn thì tự bỏ lượt. Nếu đang mở bàn thì không được bỏ lượt,
-// máy chủ không đánh thay nên người đó bị loại khỏi ván.
+// Hết giờ: nếu đang có bài trên bàn thì tự bỏ lượt. Nếu đang mở bàn (không được bỏ lượt)
+// thì tự đánh bộ nhỏ nhất theo luật (ván đầu là 3 bích). Chỉ khi không có nước hợp lệ mới loại khỏi ván.
 function turnTimeout(room) {
   const gm = room.gm;
   if (room.phase !== 'play' || !gm || gm.over || gm.turn === null || !room.order) return;
@@ -173,6 +173,8 @@ function turnTimeout(room) {
     afterMove(room);
     return;
   }
+  const ids = TL.botMove(gm, gm.turn);
+  if (ids && !TL.play(gm, gm.turn, ids)) { afterMove(room); return; }
   dropFromGame(room, room.order[gm.turn], 'timeout');
 }
 
