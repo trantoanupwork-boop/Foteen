@@ -674,6 +674,7 @@ button, [data-tlid], [data-react], [id^="tlOpp"] .tl-fb, [id^="phOpp"] .tl-fb, [
     </div>
 
     <div id="tlBoard" hidden>
+      <div class="tl-info" id="tlInfo" aria-label="Ván hiện tại và tổng tiền"></div>
       <div class="tl-felt">
         <div id="tlOppTop" class="tl-opp tl-top"></div>
         <div id="tlOppLeft" class="tl-opp tl-left"></div>
@@ -819,6 +820,9 @@ body:has(#gamePane.stage) #tlBoard #tlHand { position: relative; top: -50px; }
 #tlTrick.sweep { opacity: 0; transition: opacity .4s ease-out; }
 @keyframes trickShake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, 2px); } 75% { transform: translate(3px, -2px); } }
 #tlTrick.shake { animation: trickShake .3s ease-in-out; }
+.tl-info { position: absolute; left: 10px; top: 58px; z-index: 20; background: rgba(0, 0, 0, 0.38); color: #fff; border-radius: 10px; padding: 4px 9px; font-size: 12px; line-height: 1.35; max-width: 46%; pointer-events: none; }
+.tl-info .tl-pos { color: #7CFC9A; }
+.tl-info .tl-neg { color: #FF8A80; }
 </style>
 <script>
 // Phỏm miền Nam — engine thuần (không DOM). Dùng được trong trình duyệt và Node.
@@ -2595,6 +2599,17 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
   }
   var TL_NAMES = ['Bạn', 'Máy 1', 'Máy 2', 'Máy 3'];
 
+  // Góc trên: số ván và tổng tiền hiện tại của mọi người (lấy từ sổ)
+  function tlInfoHTML() {
+    var setup = online ? onlineSetup() : tlFixSetup();
+    var rows = setup.map(function (s, i) {
+      var p = s.pid ? tlPlayerById(s.pid) : null, total = 0;
+      if (p) state.rounds.forEach(function (r) { total += (r.scores && r.scores[p.id]) || 0; });
+      var name = esc(s.name || TL_NAMES[i] || ('Ghế ' + (i + 1)));
+      return '<div>' + name + ': <b class="' + (total > 0 ? 'tl-pos' : total < 0 ? 'tl-neg' : '') + '">' + (total > 0 ? '+' : '') + total + 'k</b></div>';
+    }).join('');
+    return '<div><b>Ván ' + tlRoundNo + '</b></div>' + rows;
+  }
   function tlPlayerById(id) {
     return state.players.filter(function (p) { return p.id === id; })[0];
   }
@@ -3027,6 +3042,7 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
       gbs[k].setAttribute('aria-pressed', on ? 'true' : 'false');
     }
     $('tlBoard').hidden = !tg;
+    if (tg) $('tlInfo').innerHTML = tlInfoHTML();
     $('tlResult').hidden = !(tg && tg.over);
     if (curGame === 'tienlen') $('gamePane').classList.toggle('stage', !!tg);
     if (!tg) { $('tlResult').innerHTML = ''; return; }
