@@ -3039,7 +3039,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
       onlineDisconnect(); onlineSave(null); online = null;
       try { history.replaceState(null, '', location.pathname); } catch (err) {}
       toast(m.reason === 'disconnect' ? 'Mất kết nối quá lâu nên bạn đã bị loại khỏi ván.'
-        : m.reason === 'timeout' ? 'Hết 1 phút suy nghĩ nên bạn đã bị loại khỏi ván.' : 'Bạn đã rời bàn.');
+        : m.reason === 'timeout' ? 'Hết 1 phút khi đang mở bàn nên bạn bị loại khỏi ván.' : 'Bạn đã rời bàn.');
       leaveTable(false);
     });
     renderOnlineBox();

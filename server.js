@@ -163,9 +163,16 @@ function afterMove(room) {
 }
 
 // Hết thời gian suy nghĩ của lượt: người đang có lượt bị loại khỏi ván (máy không đánh thay)
+// Hết giờ: nếu đang có bài trên bàn thì tự bỏ lượt. Nếu đang mở bàn thì không được bỏ lượt,
+// máy chủ không đánh thay nên người đó bị loại khỏi ván.
 function turnTimeout(room) {
   const gm = room.gm;
   if (room.phase !== 'play' || !gm || gm.over || gm.turn === null || !room.order) return;
+  if (gm.top) {
+    TL.pass(gm, gm.turn);
+    afterMove(room);
+    return;
+  }
   dropFromGame(room, room.order[gm.turn], 'timeout');
 }
 
