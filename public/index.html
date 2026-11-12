@@ -654,7 +654,6 @@ button, [data-tlid], [data-react], [id^="tlOpp"] .tl-fb, [id^="phOpp"] .tl-fb, [
     <div class="tl-topbar">
       <button class="btn small" id="gameBack" type="button">← Các game</button>
       <span class="tl-round" id="tlRoundLbl"></span>
-      <button class="btn small" id="chatBtn" type="button">💬 Chat</button>
       <button class="btn small danger" id="tlLeave" type="button">Rời bàn</button>
     </div>
     <p class="rotate-note" aria-hidden="true">📱 Xoay ngang điện thoại để chơi bài nhé</p>
@@ -691,6 +690,7 @@ button, [data-tlid], [data-react], [id^="tlOpp"] .tl-fb, [id^="phOpp"] .tl-fb, [
           <div id="tlMe" class="tl-me"></div>
           <div class="tl-hwrap">
             <div class="tl-pp-row">
+              <button class="btn small" id="chatBtn" type="button">💬 Chat</button>
               <button class="btn tl-side pass" id="tlPass" type="button">Bỏ lượt</button>
               <button class="btn tl-side play primary" id="tlPlay" type="button">Đánh bài</button>
             </div>
@@ -840,6 +840,21 @@ body:has(#gamePane.stage) #tlBoard #tlHand .tlc.art { width: 44px; }
 /* Điện thoại dọc: góc bàn xoay góc dưới-trái (dưới tay bài) để không che avatar */
 @media (orientation: portrait) {
   #tlBoard #tlInfo { top: 170px; left: 590px; bottom: auto; right: auto; font-size: 11px; line-height: 1.25; padding: 3px 7px; }
+}
+
+/* Điện thoại dọc: bàn full màn hình, nút đặt theo sơ đồ: Gợi ý góc trên trái, Ván góc trên phải trong bàn,
+   Rời bàn giữa đáy, Xếp: số góc dưới trái, bảng tổng tiền trên cột trái phía dưới cụm nút */
+@media (orientation: portrait) {
+  body:has(#gamePane.stage) #gamePane { padding: 0; gap: 0; }
+  body:has(#gamePane.stage) #gamePane .tl-topbar { display: contents; }
+  body:has(#gamePane.stage) #gameBack { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); z-index: 60; }
+  body:has(#gamePane.stage) #tlRoundLbl { position: absolute; left: 14px; top: 8px; z-index: 60; }
+  body:has(#gamePane.stage) #tlLeave { position: absolute; left: calc(100% - 40px); top: 50%; transform: translate(-50%, -50%); z-index: 60; }
+  body:has(#gamePane.stage) #tlBoard .tl-felt { position: absolute; inset: 0; height: auto; border: 0; border-radius: 0; }
+  body:has(#gamePane.stage) #tlBoard .tl-actions { display: contents; }
+  body:has(#gamePane.stage) #tlHint { position: absolute; left: 14px; top: calc(100% - 60px); z-index: 60; }
+  body:has(#gamePane.stage) #tlSort { position: absolute; left: calc(100% - 46px); top: calc(100% - 74px); z-index: 60; }
+  body:has(#gamePane.stage) #tlBoard #tlInfo { left: 78%; top: calc(100% - 150px); bottom: auto; right: auto; }
 }
 </style>
 <script>
