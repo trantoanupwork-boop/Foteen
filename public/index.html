@@ -827,7 +827,7 @@ body:has(#gamePane.stage) #tlBoard #tlHand .tlc.art { width: 44px; }
 /* Điện thoại dọc (bàn đã xoay): nút nằm ở đầu bộ bài, xếp thành cột */
 @media (orientation: portrait) {
   body:has(#gamePane.stage) #tlBoard .tl-hwrap { flex-direction: row; align-items: flex-end; }
-  body:has(#gamePane.stage) #tlBoard .tl-hwrap #tlHand { flex: none; order: 1; }
+  body:has(#gamePane.stage) #tlBoard .tl-hwrap #tlHand { flex: none; order: 1; min-width: 484px; }
   /* Lưới nút: Đánh bài nằm trên Bỏ lượt; Chat nằm bên phải Bỏ lượt (theo chiều màn hình) */
   body:has(#gamePane.stage) #tlBoard .tl-pp-row { display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; gap: 10px; }
   body:has(#gamePane.stage) #tlBoard #tlPlay { grid-column: 1; grid-row: 2; }
@@ -835,7 +835,7 @@ body:has(#gamePane.stage) #tlBoard #tlHand .tlc.art { width: 44px; }
   body:has(#gamePane.stage) #tlBoard #chatBtn { grid-column: 2; grid-row: 1; }
   body:has(#gamePane.stage) #tlBoard .tl-pp-row { order: 2; flex: none; flex-direction: column; justify-content: flex-start; align-items: stretch; gap: 10px; padding: 0 0 0 6px; }
 }
-.trick-group.newest { z-index: 2; transform: translate(-50%, -50%) translate(calc(var(--gi) * 12px - 6px), calc(var(--gi) * 8px - 4px)) rotate(45deg); }
+.trick-group.newest { z-index: 2; transform: translate(-50%, -50%) translate(calc(var(--gi) * 12px - 6px), calc(var(--gi) * 8px - 4px)) rotate(22.5deg); }
 .trick-group { position: absolute; left: 50%; top: 50%; display: flex; gap: 4px; transform: translate(-50%, -50%) translate(calc(var(--gi) * 12px - 6px), calc(var(--gi) * 8px - 4px)); }
 #tlTrick.sweep { opacity: 0; transition: opacity .4s ease-out; }
 @keyframes trickShake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, 2px); } 75% { transform: translate(3px, -2px); } }
