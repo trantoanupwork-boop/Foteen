@@ -697,6 +697,7 @@ button, [data-tlid], [data-react], [id^="tlOpp"] .tl-fb, [id^="phOpp"] .tl-fb, [
       <div class="actions tl-actions">
         <button class="btn" id="tlHint" type="button">Gợi ý</button>
         <button class="btn" id="tlSort" type="button">Xếp: số</button>
+        <button class="btn" id="tlFast" type="button">Chia: chậm</button>
       </div>
     </div>
 
@@ -813,6 +814,12 @@ body:has(#gamePane.stage) #tlBoard #tlHand { position: relative; top: -50px; }
 .fly-back { width: 100%; height: 100%; box-sizing: border-box; border-radius: 8px; border: 2px solid #222; background: repeating-linear-gradient(45deg, #b02a2a 0 6px, #8c1f1f 6px 12px); box-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
 .fx-pass { position: absolute; left: 50%; bottom: calc(100% + 4px); transform: translateX(-50%); z-index: 75; background: #444; color: #fff; font-size: 12px; font-weight: 800; border-radius: 99px; padding: 2px 9px; white-space: nowrap; pointer-events: none; animation: passFade 1.1s ease-out forwards; }
 @keyframes passFade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+/* Các nhóm bài trong vòng: xếp chồng lệch nhau, nhóm mới nằm trên */
+#tlBoard #tlTrick { position: relative; }
+.trick-group { position: absolute; left: 50%; top: 50%; display: flex; gap: 4px; transform: translate(-50%, -50%) translate(calc(var(--gi) * 9px - 12px), calc(var(--gi) * 7px - 10px)); }
+#tlTrick.sweep { opacity: 0; transition: opacity .4s ease-out; }
+@keyframes trickShake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, 2px); } 75% { transform: translate(3px, -2px); } }
+#tlTrick.shake { animation: trickShake .3s ease-in-out; }
 </style>
 <script>
 // Phỏm miền Nam — engine thuần (không DOM). Dùng được trong trình duyệt và Node.
@@ -2445,6 +2452,24 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
   /* ---------- Chơi Tiến lên trên bàn sổ ---------- */
   var tg = null, tlOrder = [], tlSel = {}, tlTimer = null, tlFlash = '', tlRecorded = false, tlGameMode = 'het';
   var dealPending = false, playSrcRects = null, lastPassRound = -1, lastPassSet = {};
+  // Các nhóm bài đã đánh trong vòng hiện tại (xếp chồng, nhóm mới nằm trên)
+  var trail = [], trailRound = -1, trailSweepTO = null;
+  var fastDeal = false;
+  try { fastDeal = localStorage.getItem('forteen-fastdeal') === '1'; } catch (e) { fastDeal = false; }
+  function trailHTML() {
+    // Lịch sử đầy đủ vẫn giữ trong trail; chỉ hiển thị 4 nhóm gần nhất để không che nút điều khiển
+    var shown = trail.slice(-4), base = trail.length - shown.length;
+    return shown.map(function (g, i) {
+      return '<div class="trick-group" style="--gi:' + (i + base - base) + '">' + g.cards.map(function (c, j) { return tlCardHTML(c, '', tlPileAttrs(c, j, g.seat)); }).join('') + '</div>';
+    }).join('');
+  }
+  function sweepTrail() {
+    var el = $('tlTrick');
+    el.classList.add('sweep');
+    trailSweepTO = setTimeout(function () {
+      el.innerHTML = ''; el.classList.remove('sweep'); trailSweepTO = null;
+    }, 420);
+  }
   function showPassLabel(seat) {
     var host = $(bubbleHostId(seat));
     if (!host) return;
@@ -2498,6 +2523,7 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
   function playDeal(el) {
     if (!dealPending) return;
     dealPending = false;
+    if (fastDeal) return;
     var isTl = el.id === 'tlHand';
     var players = isTl ? tg.players : pg.players;
     var seats = [];
@@ -2523,8 +2549,9 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
     });
   }
   // Lá vừa đánh bay từ tay người chơi (hoặc avatar đối thủ) vào giữa bàn
-  function playFlight(seat, trick) {
-    var kids = Array.prototype.slice.call(trick.children);
+  function playFlight(seat, group) {
+    if (!group) return;
+    var kids = Array.prototype.slice.call(group.children);
     kids.forEach(function (child, i) {
       var src = (seat === 0 && playSrcRects && playSrcRects[i]) ? playSrcRects[i] : null;
       if (!src) {
@@ -2675,6 +2702,7 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
       var n = tg.cuts ? tg.cuts.length : 0;
       if (n > fxState.tlCuts) {
         fxShow('CHẶT HEO!', 'heo');
+        var tt = $('tlTrick'); tt.classList.remove('shake'); void tt.offsetWidth; tt.classList.add('shake');
         for (var i = fxState.tlCuts; i < n; i++) if (tg.cuts[i].victim !== 0) botSay(tg.cuts[i].victim, 'Ối, bị chặt rồi!');
       }
       fxState.tlCuts = n;
@@ -3024,12 +3052,16 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
       var tkey = tg.top.seat + ':' + tg.top.combo.cards.map(function (c) { return c.id; }).join(',');
       if (tkey !== tlTrickKey) {
         tlTrickKey = tkey;
-        $('tlTrick').innerHTML = tg.top.combo.cards.map(function (c, i) { return tlCardHTML(c, '', tlPileAttrs(c, i, tg.top.seat)); }).join('');
-        playFlight(tg.top.seat, $('tlTrick'));
+        if (trailRound !== tlRoundNo) { trail = []; trailRound = tlRoundNo; }
+        if (trailSweepTO) { clearTimeout(trailSweepTO); trailSweepTO = null; $('tlTrick').classList.remove('sweep'); }
+        trail.push({ seat: tg.top.seat, cards: tg.top.combo.cards });
+        $('tlTrick').innerHTML = trailHTML();
+        var groups = $('tlTrick').querySelectorAll('.trick-group');
+        playFlight(tg.top.seat, groups[groups.length - 1]);
       }
     } else if (!tg.over) {
       $('tlLabel').textContent = 'Bàn trống. ' + tg.players[tg.turn].name + ' mở bàn';
-      $('tlTrick').innerHTML = '';
+      if (trail.length && !trailSweepTO) { trail = []; sweepTrail(); }
       tlTrickKey = '';
     } else {
       $('tlLabel').textContent = tg.trang !== undefined && tg.trang !== null ? 'Thắng trắng! ' + tg.players[tg.trang].name + ' có tứ quý 2' : 'Ván xong';
@@ -3254,6 +3286,13 @@ return { newGame: newGame, play: play, pass: pass, botMove: botMove, candidates:
     tlFlash = 'Gợi ý ' + ((tlHintIdx - 1) % n + 1) + '/' + n + ': ' + tlDescribe(c);
     renderGame();
   });
+  function syncFast() { $('tlFast').textContent = fastDeal ? 'Chia: nhanh' : 'Chia: chậm'; }
+  $('tlFast').addEventListener('click', function () {
+    fastDeal = !fastDeal;
+    try { localStorage.setItem('forteen-fastdeal', fastDeal ? '1' : '0'); } catch (e) { /* bỏ qua */ }
+    syncFast();
+  });
+  syncFast();
   $('tlPlay').addEventListener('click', function () {
     if (!tg) return;
     if (online) {
