@@ -2734,6 +2734,13 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
   function meSet(m) {
     meMem = m;
     try { localStorage.setItem(ME_KEY, JSON.stringify(m)); } catch (e) {}
+    if (m) onlineSyncMe(); // đang ở phòng: gửi tên và nhân vật mới lên máy chủ để mọi người thấy đúng
+  }
+  // Đẩy tên và nhân vật hiện tại của máy này lên máy chủ (ghế của mình)
+  function onlineSyncMe() {
+    if (!online || !meGet()) return;
+    var me = meGet();
+    postJSON('/api/join', { code: online.code, token: online.token, name: me.name, av: me.av }).catch(function () {});
   }
   function tlFixSetup() {
     if (!Array.isArray(state.tlSetup) || state.tlSetup.length !== 4) {
@@ -3086,7 +3093,8 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
       // Ghế của mình: dùng nhân vật đang lưu trên máy này để khớp với phần chọn nhân vật
       var mine = i === 0 ? meGet() : null;
       var av0 = mine && mine.av && mine.av.b ? mine.av : null;
-      return s ? { name: s.name, av: av0 || ((s.av && s.av.b) ? s.av : defAv(i)), pid: null } : { name: 'Trống', av: defAv(i), pid: null };
+      var nm = mine && mine.name ? mine.name : (s && s.name);
+      return s ? { name: nm, av: av0 || ((s.av && s.av.b) ? s.av : defAv(i)), pid: null } : { name: 'Trống', av: defAv(i), pid: null };
     });
     if (online.lastRound !== v.roundNo) { online.lastRound = v.roundNo; dealPending = true; tlRecorded = false; tlSel = {}; tlHintList = null; }
     tg = v.tg || null;
@@ -3147,7 +3155,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
         if (!s) return '<div class="rdy-seat"><span class="rdy-empty" aria-label="Ghế trống"></span></div>';
         return '<div class="rdy-seat"><span class="rdy-tag ' + (s.ready ? 'ok' : 'no') + '">' + (s.ready ? 'Sẵn sàng' : 'Chưa sẵn sàng') + '</span>' +
           fbHTML({ av: (i === 0 && meGet() && meGet().av && meGet().av.b) ? meGet().av : ((s.av && s.av.b) ? s.av : defAv(i)) }) +
-          '<div class="tl-nm">' + esc(s.name) + (i === v.hostSlot ? ' 👑' : '') + '</div></div>';
+          '<div class="tl-nm">' + esc(i === 0 && meGet() && meGet().name ? meGet().name : s.name) + (i === v.hostSlot ? ' 👑' : '') + '</div></div>';
       }).join('') + '</div>' +
       '<div class="hint-text">Gửi link này cho bạn bè: ' + esc(location.origin + '/?room=' + online.code) + '</div>' +
       '<div class="hint-text">' + (!v.isHost ? 'Chủ phòng (👑) sẽ bấm Bắt đầu khi đủ người và tất cả đã sẵn sàng.' : v.canStart ? 'Bạn là chủ phòng. Đủ người, bấm Bắt đầu để chơi.' : 'Cần ít nhất 2 người, và tất cả bấm Sẵn sàng thì mới bắt đầu được.') + '</div>' +
