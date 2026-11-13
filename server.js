@@ -29,11 +29,14 @@ function makeCode() {
     if (!ROOMS.has(c)) return c;
   }
 }
+// Tỷ lệ tính tiền cho bàn online: cố định, giống mặc định trên máy (mọi máy cùng bảng)
+const RATES = { nhi: 1, ba: 2, bet: 3, chay: 4, u: 5, uden: 15, chot: 3, la: 1, heoden: 2, heodo: 3, trang: 10 };
 function newRoom(mode) {
   const code = makeCode();
   const room = { code, seats: [null, null, null, null], phase: 'lobby', mode: mode === 'dem' ? 'dem' : 'het', roundNo: 0,
     gm: null, order: null, deadline: 0, turnTO: null, rdy: null, rdyTO: null,
-    clients: new Set(), chatTimes: [], last: Date.now(), offTO: [null, null, null, null], lastWinner: null, host: null };
+    clients: new Set(), chatTimes: [], last: Date.now(), offTO: [null, null, null, null], lastWinner: null, host: null,
+    ledger: [], gameTokens: null, roundNo_settled: 0 }; // sổ tiền riêng của bàn này
   ROOMS.set(code, room);
   return room;
 }
@@ -68,6 +71,7 @@ function viewFor(room, me) {
   const v = { real: me, phase: room.phase, mode: room.mode, roundNo: room.roundNo, isHost: me === room.host, hostSlot: room.host == null ? -1 : slots.indexOf(room.host),
     seats: slots.map(r => (r == null ? null : seatInfo(room.seats[r]))),
     canStart: room.phase === 'lobby' && canStart(room),
+    ledger: room.ledger.map(e => ({ name: e.name, total: e.total })),
     left: Math.max(0, room.deadline - Date.now()), turnUntil: (room.phase === 'play' && room.gm && !room.gm.over && !room.hold) ? room.deadline : 0, serverNow: Date.now() };
   if (room.gm) {
     const gm = room.gm, N = room.order.length, meE = room.order.indexOf(me);
@@ -128,7 +132,19 @@ function startGame(room) {
   console.log(`[fair] phòng ${room.code} ván ${room.fair.gameId} commit ${room.fair.commit}`);
   const lead = room.lastWinner == null ? -1 : room.order.indexOf(room.lastWinner);
   room.gm = TL.newGame(room.mode, room.order.map(r => room.seats[r].name), lead, makeFairRng(room.fair.secret));
+  room.gameTokens = room.order.map(r => room.seats[r].token);
   afterMove(room);
+}
+// Tính tiền ván vừa xong vào sổ của bàn (đúng 1 lần mỗi ván)
+function settleLedger(room) {
+  const gm = room.gm, st = TL.settle(gm, RATES);
+  gm.players.forEach((p, i) => {
+    const tok = room.gameTokens[i];
+    let e = room.ledger.find(x => x.tok === tok);
+    if (!e) { e = { tok, name: p.name, total: 0 }; room.ledger.push(e); }
+    e.name = p.name;
+    e.total += st.nets[p.seat] || 0;
+  });
 }
 function afterMove(room) {
   const gm = room.gm;
@@ -150,6 +166,7 @@ function afterMove(room) {
     room.fair.reveal = room.fair.secret.toString('hex');
     console.log(`[fair] phòng ${room.code} ván ${room.fair.gameId} reveal ${room.fair.reveal} (kiểm: ${sha256hex(room.fair.secret) === room.fair.commit})`);
     room.deadline = 0;
+    if (room.roundNo_settled !== room.roundNo) { room.roundNo_settled = room.roundNo; settleLedger(room); }
     if (room.seats.filter(Boolean).length >= 2) {
       // Tự động: đếm ngược READY_MS (mặc định 10 giây) rồi chia ván mới, không cần bấm gì
       room.phase = 'ready';

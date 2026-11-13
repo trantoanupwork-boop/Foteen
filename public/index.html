@@ -2712,7 +2712,17 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
   var TL_NAMES = ['Bạn', 'Máy 1', 'Máy 2', 'Máy 3'];
 
   // Góc trên: số ván và tổng tiền hiện tại của mọi người (lấy từ sổ)
+  // Bàn online: tỷ lệ cố định (giống server) để mọi máy tính ra cùng một kết quả
+  function tlRates() {
+    return online ? { nhi: 1, ba: 2, bet: 3, chay: 4, u: 5, uden: 15, chot: 3, la: 1, heoden: 2, heodo: 3, trang: 10 } : state.rates;
+  }
   function tlInfoHTML() {
+    if (online) { // sổ của bàn do server giữ: mọi máy cùng thấy một số
+      return '<div><b>Ván ' + tlRoundNo + '</b></div>' + onlineLedger.map(function (e) {
+        var t = e.total || 0;
+        return '<div>' + esc(e.name) + ': <b class="' + (t > 0 ? 'tl-pos' : t < 0 ? 'tl-neg' : '') + '">' + (t > 0 ? '+' : '') + t + 'k</b></div>';
+      }).join('');
+    }
     var setup = online ? onlineSetup() : tlFixSetup();
     var rows = setup.map(function (s, i) {
       var p = s.pid ? tlPlayerById(s.pid) : null, total = 0;
@@ -3015,7 +3025,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
   });
 
   // ===== Chơi online: phòng 4 người qua máy chủ =====
-  var ONLINE_KEY = 'forteen-online', online = null, onlineES = null;
+  var ONLINE_KEY = 'forteen-online', online = null, onlineES = null, onlineLedger = [];
   function onlineSaved() { try { return JSON.parse(localStorage.getItem(ONLINE_KEY)) || null; } catch (e) { return null; } }
   function onlineSave(v) { try { if (v) localStorage.setItem(ONLINE_KEY, JSON.stringify(v)); else localStorage.removeItem(ONLINE_KEY); } catch (e) {} }
   function onlineAvailable() { return location.protocol === 'http:' || location.protocol === 'https:'; }
@@ -3090,6 +3100,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
   function applyView(v) {
     if (!online) return;
     online.view = v;
+    onlineLedger = v.ledger || [];
     tlOrder = v.seats.map(function (s, i) {
       // Ghế của mình: dùng nhân vật đang lưu trên máy này để khớp với phần chọn nhân vật
       var mine = i === 0 ? meGet() : null;
@@ -3274,7 +3285,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
     fxTick();
 
     if (tg.over) {
-      var st = TL.settle(tg, state.rates);
+      var st = TL.settle(tg, tlRates());
       showMoneyFx(st.nets, 'tl' + tlRoundNo);
       $('tlResult').innerHTML = '<p class="tl-mini"><b>' + esc(tg.players[st.winner].name) + ' nhất</b></p>' +
         '<div class="tl-row tl-actions"><button class="btn primary" id="tlRecord" type="button"' + (tlRecorded ? ' disabled' : '') + '>' +
@@ -3290,7 +3301,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
     var setup = online ? onlineSetup() : tlFixSetup();
     var missing = setup.filter(function (s) { return !s.pid || !tlPlayerById(s.pid); }).length;
     if (state.players.length + missing > 8) { toast('Sổ đã đủ 8 người, hãy bớt người rồi ghi lại.'); return false; }
-    var st = TL.settle(tg, state.rates), scores = {};
+    var st = TL.settle(tg, tlRates()), scores = {};
     setup.forEach(function (s, i) {
       if (!s.pid || !tlPlayerById(s.pid)) {
         s.pid = uid();
@@ -3350,7 +3361,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
       names = pg.players;
     } else {
       if (!tg || !tg.over) return '';
-      st = TL.settle(tg, state.rates);
+      st = TL.settle(tg, tlRates());
       head = 'Kết quả: ' + tg.players[st.winner].name + ' nhất';
       names = tg.players;
     }
@@ -3378,7 +3389,7 @@ return { newGame: newGame, play: play, pass: pass, removePlayer: removePlayer, b
   }
   function renderReady() {
     var on = curGame === 'phom';
-    if (rdy.on && curGame !== 'phom' && tg && tg.over) showMoneyFx(TL.settle(tg, state.rates).nets, 'tl' + tlRoundNo);
+    if (rdy.on && curGame !== 'phom' && tg && tg.over) showMoneyFx(TL.settle(tg, tlRates()).nets, 'tl' + tlRoundNo);
     if (rdy.on && curGame === 'phom' && pg && pg.over) showMoneyFx(phomSettle(pg, state.rates).nets, 'ph' + tlRoundNo);
     var host = $(on ? 'readyMidPh' : 'readyMidTl'), other = $(on ? 'readyMidTl' : 'readyMidPh');
     if (other) { other.hidden = true; other.innerHTML = ''; }
